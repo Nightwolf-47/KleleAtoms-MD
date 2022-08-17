@@ -24,7 +24,7 @@ If a player loses all their atoms, they lose. The last standing player wins the 
 ## Credits  
 **Stephane Dallongeville** - [SGDK](https://github.com/Stephane-D/sgdk), a development kit used to compile this game.  
 **DrPetter** - SFXR, a tool used to make sounds for this game.  
-**GreffMASTER** - Title screen and README.MD image.
+**GreffMASTER** - Title screen/README.MD image.
 
 ## License
 This game is licensed under the [MIT License](https://github.com/Nightwolf-47/KleleAtoms-MD/blob/master/LICENSE).  
