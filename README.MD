@@ -27,4 +27,4 @@ If a player loses all their atoms, they lose. The last standing player wins the 
 **GreffMASTER** - Title screen and README.MD image.
 
 ## License
-This game is licensed under the MIT License.  
+This game is licensed under the [MIT License](https://github.com/Nightwolf-47/KleleAtoms-MD/blob/master/LICENSE).  
