@@ -1,4 +1,4 @@
-# KleleAtoms MD
+# KłełeAtoms MD
 
 Mega Drive port of KłełeAtoms, a game where you have to take atoms from other players by blowing up yours, made in SGDK.  
 
