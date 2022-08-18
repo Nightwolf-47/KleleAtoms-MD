@@ -19,7 +19,7 @@ If a player loses all their atoms, they lose. The last standing player wins the 
 - Player 1-4 type - Set player type (None, Human, AI 1, AI 2, AI 3) - only 2 players can be None at the same time.  
 - Player colors - Choose between default colors and the ones used in early development versions (original).  
 - Multiple controllers - When enabled, every non-AI player uses a separate controller.  
-- Reset settings - completely reset all data and remove the saved game if it exists.  
+- Reset settings - Completely reset all data and remove the saved game if it exists.  
 
 ## Credits  
 **Stephane Dallongeville** - [SGDK](https://github.com/Stephane-D/sgdk), a development kit used to compile this game.  
