@@ -3,7 +3,7 @@ IMAGE texTile1 "graphics/tile1.png" 0
 IMAGE texTile2 "graphics/tile2.png" 0
 IMAGE texTile3 "graphics/tile3.png" 0
 IMAGE texTile4 "graphics/tile4.png" 0
-IMAGE texTileExp "graphics/tileExp.png" 0
+IMAGE texTileExp "graphics/tileexp.png" 0
 IMAGE texPlayer "graphics/player.png" 0
 IMAGE texBorderH "graphics/borderh.png" 0
 IMAGE texBorderV "graphics/borderv.png" 0
