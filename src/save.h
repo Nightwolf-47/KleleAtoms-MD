@@ -1,5 +1,6 @@
 #ifndef SAVE_H_DEFINED
 #define SAVE_H_DEFINED
+#include <types.h>
 
 #define SETTINGS_SRAM_POS 1
 #define SAVEDATA_SRAM_POS 11
@@ -15,11 +16,11 @@ void loadSRAM(void);
 void invalidateSRAM(void);
 
 //Load game data from SRAM
-long loadGameData(void);
+fix32 loadGameData(void);
 
 //Save game data to SRAM as KSF (KleleAtoms 1.3 save format)
 void saveGameData(void);
 
-extern unsigned short saveValid;
+extern bool saveValid;
 
 #endif //SAVE_H_DEFINED

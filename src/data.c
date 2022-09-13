@@ -9,13 +9,13 @@ u8 currentState = ST_GAMESTATE;
 
 bool randomNoPattern = TRUE;
 
-const char* versionStr = "1.0";
+const char* versionStr = "1.1";
+
+u16 newPalette[64] = {0};
 
 struct VidReservedImage vimages[VIMAGE_MAXCOUNT]; //Array of image data with reserved VRAM tile positions
 
 int vImageCount = 0;
-
-u16 newVImagePos = TILE_USERINDEX;
 
 bool isDemoPlaying = FALSE;
 
@@ -53,8 +53,8 @@ VidImagePtr reserveVImage(const Image* img)
     }
     VidImagePtr vidimg = &vimages[vImageCount];
     vidimg->img = img;
-    vidimg->vPos = newVImagePos;
-    newVImagePos += img->tileset->numTile;
+    vidimg->vPos = curTileInd;
+    curTileInd += img->tileset->numTile;
     vImageCount++;
     return vidimg;
 }
@@ -65,15 +65,28 @@ void changeState(enum States newState)
     {
         SYS_die("Invalid game state!");
     }
+    switch(newState)
+    {
+        case ST_TITLESTATE:
+            PAL_setColors(0,palette_black,64,CPU);
+            break;
+        default:
+            PAL_fadeOut(0,63,10,FALSE);
+            break;
+    }
     if(states[currentState].stop)
         states[currentState].stop();
     VDP_clearPlane(BG_A,TRUE);
     VDP_clearPlane(BG_B,TRUE);
     VDP_clearSprites();
     SPR_defragVRAM();
+    SPR_update();
     vImageCount = 0;
-    newVImagePos = TILE_USERINDEX;
+    curTileInd = TILE_USERINDEX;
     currentState = newState;
+    memset(newPalette,0,sizeof(newPalette));
+    newPalette[15] = RGB24_TO_VDPCOLOR(0xEEEEEE);
     if(states[currentState].init)
         states[currentState].init();
+    PAL_fadeIn(0,63,newPalette,15,TRUE);
 }

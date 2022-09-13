@@ -13,6 +13,6 @@ IMAGE texTitleScr1 "graphics/titlescreen1.png" 2
 IMAGE texMenuBG "graphics/menubg.png" 2
 SPRITE sprAtom "graphics/atom.png" 1 1 NONE
 SPRITE sprSel "graphics/selector.png" 4 4 NONE
-WAV sfx_click "sfx/click.wav" 5
-WAV sfx_put "sfx/put.wav" 5
-WAV sfx_explode "sfx/explode.wav" 5
+WAV sfx_click "sfx/click.wav" XGM
+WAV sfx_put "sfx/put.wav" XGM
+WAV sfx_explode "sfx/explode.wav" XGM

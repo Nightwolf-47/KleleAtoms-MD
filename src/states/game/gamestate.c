@@ -1,6 +1,5 @@
 #include "gamestate.h"
 #include "../../data.h"
-#include <timer.h>
 #include "../../../res/resources.h"
 #include "gamelogic.h"
 #include "../../save.h"
@@ -34,64 +33,68 @@ extern bool aiPlayerTab[4];
 void setupGamePalettes(bool oldColors)
 {
     //PAL0 (Red)
-    PAL_setColor(0, RGB24_TO_VDPCOLOR(0x000000));
-    PAL_setColor(2, RGB24_TO_VDPCOLOR(0xEEEEEE));
-    PAL_setColor(3, RGB24_TO_VDPCOLOR(0xA8A0A8));
+    newPalette[0] = RGB24_TO_VDPCOLOR(0x000000);
+    newPalette[1] = RGB24_TO_VDPCOLOR(0x444444);
+    newPalette[2] = RGB24_TO_VDPCOLOR(0xEEEEEE);
+    newPalette[3] = RGB24_TO_VDPCOLOR(0xA8A0A8);
     if(oldColors)
     {
-        PAL_setColor(5, RGB24_TO_VDPCOLOR(0xF80048));
-        PAL_setColor(6, RGB24_TO_VDPCOLOR(0xC82448));
+        newPalette[5] = RGB24_TO_VDPCOLOR(0xF80048);
+        newPalette[6] = RGB24_TO_VDPCOLOR(0xC82448);
     }
     else
     {
-        PAL_setColor(5, RGB24_TO_VDPCOLOR(0xEE0000));
-        PAL_setColor(6, RGB24_TO_VDPCOLOR(0xCC2200));
+        newPalette[5] = RGB24_TO_VDPCOLOR(0xEE0000);
+        newPalette[6] = RGB24_TO_VDPCOLOR(0xCC2200);
     }
     
 
-    //PAL1 (Blue 18-22 + Explosion 29-31)
-    PAL_setColor(18, RGB24_TO_VDPCOLOR(0xEEEEEE));
-    PAL_setColor(19, RGB24_TO_VDPCOLOR(0xA8A0A8));
+    //PAL1 (Blue 17-22 + Explosion 29-31)
+    newPalette[17] = RGB24_TO_VDPCOLOR(0x444444);
+    newPalette[18] = RGB24_TO_VDPCOLOR(0xEEEEEE);
+    newPalette[19] = RGB24_TO_VDPCOLOR(0xA8A0A8);
     if(oldColors)
     {
-        PAL_setColor(21, RGB24_TO_VDPCOLOR(0x00B4F8));
-        PAL_setColor(22, RGB24_TO_VDPCOLOR(0x2090F8));
+        newPalette[21] = RGB24_TO_VDPCOLOR(0x00B4F8);
+        newPalette[22] = RGB24_TO_VDPCOLOR(0x2090F8);
     }
     else
     {
-        PAL_setColor(21, RGB24_TO_VDPCOLOR(0x0000EE));
-        PAL_setColor(22, RGB24_TO_VDPCOLOR(0x0000CC));
+        newPalette[21] = RGB24_TO_VDPCOLOR(0x0000EE);
+        newPalette[22] = RGB24_TO_VDPCOLOR(0x0000CC);
     }
-    PAL_setColor(29, RGB24_TO_VDPCOLOR(0xF8FC48));
-    PAL_setColor(30, RGB24_TO_VDPCOLOR(0xF8D820));
-    PAL_setColor(31, RGB24_TO_VDPCOLOR(0xD80020));
+    newPalette[29] = RGB24_TO_VDPCOLOR(0xF8FC48);
+    newPalette[30] = RGB24_TO_VDPCOLOR(0xF8D820);
+    newPalette[31] = RGB24_TO_VDPCOLOR(0xD80020);
 
     //PAL2 (Green)
-    PAL_setColor(34, RGB24_TO_VDPCOLOR(0xEEEEEE));
-    PAL_setColor(35, RGB24_TO_VDPCOLOR(0xA8A0A8));
+    newPalette[33] = RGB24_TO_VDPCOLOR(0x444444);
+    newPalette[34] = RGB24_TO_VDPCOLOR(0xEEEEEE);
+    newPalette[35] = RGB24_TO_VDPCOLOR(0xA8A0A8);
     if(oldColors)
     {
-        PAL_setColor(37, RGB24_TO_VDPCOLOR(0x48FC00));
-        PAL_setColor(38, RGB24_TO_VDPCOLOR(0x66CC22));
+        newPalette[37] = RGB24_TO_VDPCOLOR(0x48FC00);
+        newPalette[38] = RGB24_TO_VDPCOLOR(0x66CC22);
     }
     else
     {
-        PAL_setColor(37, RGB24_TO_VDPCOLOR(0x00EE00));
-        PAL_setColor(38, RGB24_TO_VDPCOLOR(0x00CC00));
+        newPalette[37] = RGB24_TO_VDPCOLOR(0x00EE00);
+        newPalette[38] = RGB24_TO_VDPCOLOR(0x00CC00);
     }
 
     //PAL3 (Yellow)
-    PAL_setColor(50, RGB24_TO_VDPCOLOR(0xEEEEEE));
-    PAL_setColor(51, RGB24_TO_VDPCOLOR(0xA8A0A8));
+    newPalette[49] = RGB24_TO_VDPCOLOR(0x444444);
+    newPalette[50] = RGB24_TO_VDPCOLOR(0xEEEEEE);
+    newPalette[51] = RGB24_TO_VDPCOLOR(0xA8A0A8);
     if(oldColors)
     {
-        PAL_setColor(53, RGB24_TO_VDPCOLOR(0xF8FC48));
-        PAL_setColor(54, RGB24_TO_VDPCOLOR(0xEECC44));
+        newPalette[53] = RGB24_TO_VDPCOLOR(0xF8FC48);
+        newPalette[54] = RGB24_TO_VDPCOLOR(0xEECC44);
     }
     else
     {
-        PAL_setColor(53, RGB24_TO_VDPCOLOR(0xEECC00));
-        PAL_setColor(54, RGB24_TO_VDPCOLOR(0xEEAA00));
+        newPalette[53] = RGB24_TO_VDPCOLOR(0xEECC00);
+        newPalette[54] = RGB24_TO_VDPCOLOR(0xEEAA00);
     }
 }
 
@@ -161,13 +164,13 @@ void gamePreDraw(bool drawgrid)
                 drawTile(x,y,ttile->playerNum & 3,ttile->atomCount);
             }
         }
-        for(int x=0; x<grid.width; x++) //Draw grid borders on the right side
+        for(int x=0; x<grid.width; x++) //Draw grid borders on the left side
         {
-            VDP_drawImageEx(BG_B,vidImgBorderH->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgBorderH->vPos),(x*3)+gridStartX,(grid.height*3)+gridStartY,FALSE,TRUE);
+            VDP_drawImageEx(BG_B,vidImgBorderH->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgBorderH->vPos),(x*3)+gridStartX,gridStartY-1,FALSE,TRUE);
         }
-        for(int y=0; y<grid.height; y++) //Draw grid borders on the bottom side
+        for(int y=0; y<grid.height; y++) //Draw grid borders on the top side
         {
-            VDP_drawImageEx(BG_B,vidImgBorderV->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgBorderV->vPos),(grid.width*3)+gridStartX,(y*3)+gridStartY,FALSE,TRUE);
+            VDP_drawImageEx(BG_B,vidImgBorderV->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgBorderV->vPos),gridStartX-1,(y*3)+gridStartY,FALSE,TRUE);
         }
     }
 
@@ -267,7 +270,7 @@ void gamestate_update(fix32 dt)
         SPR_setVisibility(selector,AUTO_FAST);
     s16 px,py;
     tileToPixels(selectx,selecty,&px,&py);
-    SPR_setPosition(selector,px-4,py-4); //Update selection box position
+    SPR_setPosition(selector,px-5,py-5); //Update selection box position
     if(!logicEnd)
     {
         if(playerWon<0) //No player has won yet, proceed as normal
@@ -311,7 +314,7 @@ void gamestate_update(fix32 dt)
             s16 seconds = dresult >> 16;
             char timebuf[16];
             sprintf(timebuf,"Time: %02d:%02d",minutes,seconds);
-            VDP_drawText(timebuf,20-(strlen(timebuf)>>1),3);
+            VDP_drawText(timebuf,20-(strlen(timebuf)>>1),4);
         }
     }
     logic_draw(dt);

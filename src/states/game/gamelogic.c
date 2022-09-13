@@ -60,17 +60,19 @@ const char* playerNames[4] = {"Red","Blue","Green","Yellow"};
 
 bool logicEnd = FALSE; //If TRUE the game will end and it will wait for a button press
 
-void logic_endMessage(char* msg)
+const fix32 baseExplodeTime = FIX32(0.3); //Longest duration of explosion sprite being shown after atom explosion
+
+void logic_endMessage(const char* msg)
 {
     logicEnd = TRUE;
     VDP_clearText(5+8*curPlayer,3,1);
     VDP_clearText(8+8*curPlayer,3,1);
     VDP_clearText(0,5,40);
     VDP_clearTileMapRect(BG_B,1,0,40,6);
-    VDP_drawText(msg,20-(strlen(msg)>>1),1);
-    VDP_drawText("Press any button to go to menu",5,2);
     VDP_clearText(31,0,9);
     VDP_clearText(1,0,10);
+    VDP_drawText(msg,GETCENTERX(msg),0);
+    VDP_drawText("Press any button to go to menu",5,2);
     curPlayer = 0;
 }
 
@@ -292,7 +294,7 @@ void explodeAtoms(u8 x, u8 y, s16 atplayer)
     explosionCount++;
     u16 index = GXYIndex(x,y);
     struct Tile* curTile = &grid.tiles[index];
-    curTile->explodeTime = FIX32(0.3)/max(min(explosionCount,1000)/10,1);
+    curTile->explodeTime = baseExplodeTime/max(min(explosionCount,1000)/10,1);
     u8 extra = (u8)max(curTile->atomCount-critGrid[index],0); //Amount of atoms above critical amount
     curTile->atomCount = 0;
     curTile->playerNum = NOPLAYER;
@@ -423,7 +425,7 @@ void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4])
         }
         else //Player is not present, make their icon black (invisible)
         {
-            PAL_setColor((i*16)+6,RGB24_TO_VDPCOLOR(0x000000));
+            newPalette[(i*16)+6] = RGB24_TO_VDPCOLOR(0x000000);
         }
     }
     if(curPlayer == NOPLAYER || playerCount < 2)
@@ -488,9 +490,16 @@ void logic_fixLoadedData()
     }
     for(int i=0; i<4; i++)
     {
-        if(playerTab[i]==PTAB_NO)
+        switch(playerTab[i])
         {
-            PAL_setColor((i*16)+6,RGB24_TO_VDPCOLOR(0x000000));
+            case PTAB_NO:
+                newPalette[(i*16)+6] = RGB24_TO_VDPCOLOR(0x000000);
+                break;
+            case PTAB_LOST:
+                newPalette[(i*16)+6] = RGB24_TO_VDPCOLOR(0x808080);
+                break;
+            default:
+                break;
         }
     }
     animPlaying = FALSE;
@@ -567,7 +576,8 @@ void logic_tick(fix32 dt)
         else if(asPos > 0)
         {
             int curAsPos = asPos;
-            for(int i=0; i<min(asPos,50); i++) //Pop up to 50 positions from atomStack, stop if a critical tile is found or atomStack is empty
+            int popCount = min(asPos,50);
+            for(int i=0; i<popCount; i++) //Pop up to 50 positions from atomStack, stop if a critical tile is found or atomStack is empty
             {
                 s8 ttposx = atomStack[curAsPos-1] >> 4;
                 s8 ttposy = atomStack[curAsPos-1] & 0xF;

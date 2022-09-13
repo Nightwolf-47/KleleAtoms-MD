@@ -3,11 +3,10 @@
 #include "states/game/gamestate.h"
 #include "states/title/titlestate.h"
 #include "states/menu/menustate.h"
-#include <timer.h>
 
 void joyEventHandler(u16 joy, u16 changed, u16 state)
 {
-    if(states[currentState].joyevent)
+    if(states[currentState].joyevent && !PAL_isDoingFade())
         states[currentState].joyevent(joy,changed,state);
 }
 

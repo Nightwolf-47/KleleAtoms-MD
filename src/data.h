@@ -61,6 +61,8 @@ extern struct KASettings settings; //Game settings, can be changed in main menu
 
 extern const char* versionStr; //Version string, shows up in About menu
 
+extern u16 newPalette[64]; //New palette, has to be set in init() function of a given state
+
 extern struct VidReservedImage vimages[VIMAGE_MAXCOUNT];
 
 extern bool isDemoPlaying;

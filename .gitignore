@@ -3,3 +3,4 @@ src/boot/
 .archive/
 .vscode/
 res/resources.h
+*.txt

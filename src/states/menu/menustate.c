@@ -51,18 +51,19 @@ const char* ptnames[5] = { //Player type names
 
 void setupMenuPalette(bool oldColors)
 {
-    PAL_setColor(0, RGB24_TO_VDPCOLOR(0x002266));
-    PAL_setColor(2, RGB24_TO_VDPCOLOR(0xEEEEEE));
+    newPalette[0] = RGB24_TO_VDPCOLOR(0x002266);
+    newPalette[2] = RGB24_TO_VDPCOLOR(0xEEEEEE);
     if(oldColors)
     {
-        PAL_setColor(5, RGB24_TO_VDPCOLOR(0xF80048));
-        PAL_setColor(6, RGB24_TO_VDPCOLOR(0xC82448));
+        newPalette[5] = RGB24_TO_VDPCOLOR(0xF80048);
+        newPalette[6] = RGB24_TO_VDPCOLOR(0xC82448);
     }
     else
     {
-        PAL_setColor(5, RGB24_TO_VDPCOLOR(0xEE0000));
-        PAL_setColor(6, RGB24_TO_VDPCOLOR(0xCC2200));
+        newPalette[5] = RGB24_TO_VDPCOLOR(0xEE0000);
+        newPalette[6] = RGB24_TO_VDPCOLOR(0xCC2200);
     }
+    memcpy(&newPalette[16],menuBackground->palette->data,sizeof(u16)*menuBackground->palette->length);
 }
 
 //Wrap around the menu selection if needed and play sound
@@ -232,6 +233,7 @@ void menuOptionAction(enum ActionType at)
         case 7:
             settings.useOldColors = !settings.useOldColors;
             setupMenuPalette(settings.useOldColors);
+            PAL_setColors(0,newPalette,64,CPU);
             break;
         case 8:
             settings.isHotSeat = !settings.isHotSeat;
@@ -241,6 +243,7 @@ void menuOptionAction(enum ActionType at)
             {
                 data_reset();
                 setupMenuPalette(settings.useOldColors);
+                PAL_setColors(0,newPalette,64,CPU);
                 drawMenu();
             }
             else
@@ -278,7 +281,6 @@ void menustate_init(void)
     menuBackground = unpackImage(&texMenuBG,NULL);
     setupMenuPalette(settings.useOldColors);
     loadSRAM(); //Load settings and savegame (if exists)
-    PAL_setPalette(PAL1,menuBackground->palette->data,DMA);
     VDP_drawImageEx(BG_B,menuBackground,TILE_ATTR_FULL(PAL1,FALSE,FALSE,FALSE,TILE_USERINDEX),0,0,FALSE,TRUE);
     isAboutPage = FALSE;
     drawMenu();

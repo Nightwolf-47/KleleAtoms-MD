@@ -22,10 +22,10 @@ void titlestate_init(void)
     }
     vidImgTTS[0] = reserveVImage(titleScreen[0]);
     vidImgTTS[1] = reserveVImage(titleScreen[1]);
-    PAL_setColor(47,RGB24_TO_VDPCOLOR(0xEEEEEE));
     VDP_setTextPalette(PAL2);
-    PAL_setPalette(PAL0,titleScreen[0]->palette->data,DMA);
-    PAL_setPalette(PAL1,titleScreen[1]->palette->data,DMA);
+    memcpy(newPalette,titleScreen[0]->palette->data,sizeof(u16)*titleScreen[0]->palette->length);
+    memcpy(&newPalette[16],titleScreen[1]->palette->data,sizeof(u16)*titleScreen[1]->palette->length);
+    newPalette[47] = RGB24_TO_VDPCOLOR(0xEEEEEE);
     VDP_drawImageEx(BG_B,vidImgTTS[0]->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgTTS[0]->vPos),0,0,FALSE,TRUE);
     VDP_drawImageEx(BG_B,vidImgTTS[1]->img,TILE_ATTR_FULL(PAL1,0,FALSE,FALSE,vidImgTTS[1]->vPos),26,0,FALSE,TRUE);
     VDP_drawText("Press any button to continue",2,5);
@@ -59,7 +59,6 @@ void titlestate_stop(void)
             titleScreen[i] = NULL;
         }
     }
-    //Change text color palette back to PAL0 and set text color
+    //Change text color palette back to PAL0
     VDP_setTextPalette(PAL0);
-    PAL_setColor(15,RGB24_TO_VDPCOLOR(0xEEEEEE));
 }

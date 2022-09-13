@@ -1,11 +1,12 @@
 #ifndef TITLESTATE_H_INCLUDED
 #define TITLESTATE_H_INCLUDED
+#include <types.h>
 
 void titlestate_init(void);
 
-void titlestate_joyevent(unsigned short joy, unsigned short changed, unsigned short state);
+void titlestate_joyevent(u16 joy, u16 changed, u16 state);
 
-void titlestate_update(long dt);
+void titlestate_update(fix32 dt);
 
 void titlestate_stop(void);
 

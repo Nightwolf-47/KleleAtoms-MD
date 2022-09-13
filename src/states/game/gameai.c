@@ -120,7 +120,8 @@ void aiGetSpecialTiles(int difficulty, s16 (*psptiles)[84], s16 (*ptiles)[84], s
     {
         for(int y=0; y<grid.height; y++)
         {
-            struct Tile* curtile = &grid.tiles[GXYIndex(x,y)];
+            u16 tileIndex = GXYIndex(x,y); //Current checked tile index
+            struct Tile* curtile = &grid.tiles[tileIndex];
             if(curtile->playerNum == curPlayer || curtile->playerNum == NOPLAYER) //Atom can be placed on that tile
             {
                 bool isSpTile = FALSE;
@@ -132,7 +133,7 @@ void aiGetSpecialTiles(int difficulty, s16 (*psptiles)[84], s16 (*ptiles)[84], s
                 {
                     if(aiCheckPreCrit(x,y)) //Tile is special if you and another player have near-critical atom tiles near each other
                     {
-                        if(curtile->atomCount == (critGrid[GXYIndex(x,y)]-1))
+                        if(curtile->atomCount == (critGrid[tileIndex]-1))
                         {
                             sptiles[*pspcount] = PACKCoords(x,y);
                             *pspcount += 1;
@@ -156,7 +157,7 @@ void aiGetSpecialTiles(int difficulty, s16 (*psptiles)[84], s16 (*ptiles)[84], s
                     }
                     else if(aiCheckPreCrit(x,y)) //The same as in difficulty 2
                     {
-                        if(atomcount == (critGrid[GXYIndex(x,y)]-1))
+                        if(atomcount == (critGrid[tileIndex]-1))
                         {
                             sptiles[*pspcount] = PACKCoords(x,y);
                             *pspcount += 1;
@@ -170,7 +171,7 @@ void aiGetSpecialTiles(int difficulty, s16 (*psptiles)[84], s16 (*ptiles)[84], s
                     }
                     bool isAdvantage = FALSE;
                     if(!isSpTile) //If a tile isn't special, check if you have an atom advantage over another player
-                        isAdvantage = aiCheckAdvantage(x,y,(s16)(atomcount)-(s16)(critGrid[GXYIndex(x,y)]));
+                        isAdvantage = aiCheckAdvantage(x,y,(s16)(atomcount)-(s16)(critGrid[tileIndex]));
                     
                     if(!tileAvoided && isCorner && (aicornercount == 0 || aiCornerCheck(x,y))) //Add the corner tile to the corner array
                     {

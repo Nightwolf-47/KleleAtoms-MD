@@ -1,3 +1,7 @@
+#ifndef GAMELOGIC_H_INCLUDED
+#define GAMELOGIC_H_INCLUDED
+#include <types.h>
+
 #define GRIDSIZE 24
 
 #define ATOMSPEED 30
@@ -16,22 +20,22 @@
 
 struct Tile
 {
-    short playerNum;
-    unsigned char atomCount;
-    long explodeTime; //If > 0, explosion sprite will appear
+    s16 playerNum;
+    u8 atomCount;
+    fix32 explodeTime; //If > 0, explosion sprite will appear
 };
 
 struct AtomPosition
 {
-    short destx;
-    short desty;
+    s16 destx;
+    s16 desty;
 };
 
 struct KAExplodePos
 {
-    unsigned char x;
-    unsigned char y;
-    unsigned short willExplode;
+    u8 x;
+    u8 y;
+    bool willExplode;
 };
 
 struct KAGrid
@@ -43,60 +47,62 @@ struct KAGrid
 
 extern struct KAGrid grid;
 
-extern unsigned char critGrid[84];
+extern u8 critGrid[84];
 
-extern unsigned short animPlaying;
+extern bool animPlaying;
 
-extern short curPlayer;
+extern s16 curPlayer;
 
 extern int playerTab[4];
 
 extern int playerAtoms[4];
 
-extern unsigned short playerMoved[4];
+extern bool playerMoved[4];
 
 extern int playerCount;
 
 extern int startPlayers;
 
-extern unsigned char* atomStack;
+extern u8* atomStack;
 
 extern int asPos;
 
 extern struct KAExplodePos explodePos;
 
-extern short playerWon;
+extern s16 playerWon;
 
 extern int explosionCount;
 
 extern struct AtomPosition atompos[16];
 
-extern short atomposIndex;
+extern s16 atomposIndex;
 
-extern unsigned short logicEnd;
+extern bool logicEnd;
 
-extern short gridStartX;
+extern s16 gridStartX;
 
-extern short gridStartY;
+extern s16 gridStartY;
 
 //End the current game with a message
-void logic_endMessage(char* msg);
+void logic_endMessage(const char* msg);
 
-const char* logic_getPlayerName(short playerNum);
+const char* logic_getPlayerName(s16 playerNum);
 
-void logic_loadAll(unsigned char gridWidth, unsigned char gridHeight, unsigned char (*ppttab)[4]);
+void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4]);
 
 void logic_fixLoadedData(void);
 
-void logic_clickedTile(unsigned char tx, unsigned char ty, unsigned short isAI);
+void logic_clickedTile(u8 tx, u8 ty, bool isAI);
 
-void logic_tick(long dt);
+void logic_tick(fix32 dt);
 
-void logic_draw(long dt);
+void logic_draw(fix32 dt);
 
 void logic_stop(void);
 
-void drawTile(unsigned char x, unsigned char y, short playerNum, unsigned char atomCount);
+void drawTile(u8 x, u8 y, s16 playerNum, u8 atomCount);
 
 //Convert grid tile position (x,y) to pixel position (pixelx,pixely)
-void tileToPixels(unsigned char x, unsigned char y, short* pixelx, short* pixely);
+void tileToPixels(u8 x, u8 y, s16* pixelx, s16* pixely);
+
+#endif //GAMELOGIC_H_INCLUDED
