@@ -32,8 +32,12 @@ int main(u16 hard)
     data_initsfx(); //Initialize sounds
 
     JOY_setEventHandler(&joyEventHandler);
-    data_init();
-    changeState(ST_TITLESTATE);
+    if(hard)
+    {
+        data_init();
+        loadSRAM(); //Load settings and savegame (if exists)
+    }
+    initState(ST_TITLESTATE);
     fix32 dt = 1;
     fix32 totalTime = getTimeAsFix32(0);
     if(hard)

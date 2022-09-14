@@ -50,6 +50,8 @@ void data_reset(void);
 
 void data_initsfx(void); //Initialize all sounds
 
+void initState(enum States newState);
+
 void changeState(enum States newState);
 
 extern struct GameState states[STATE_COUNT];

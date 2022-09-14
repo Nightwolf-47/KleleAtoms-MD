@@ -9,7 +9,7 @@ u8 currentState = ST_GAMESTATE;
 
 bool randomNoPattern = TRUE;
 
-const char* versionStr = "1.1";
+const char* versionStr = "1.1.1";
 
 u16 newPalette[64] = {0};
 
@@ -59,21 +59,31 @@ VidImagePtr reserveVImage(const Image* img)
     return vidimg;
 }
 
+//Initializes the game with a given state (should be called only once)
+void initState(enum States newState)
+{
+    if(newState >= STATE_COUNT)
+    {
+        SYS_die("Invalid game state!");
+    }
+    PAL_setColors(0,palette_black,64,CPU);
+    vImageCount = 0;
+    curTileInd = TILE_USERINDEX;
+    currentState = newState;
+    memset(newPalette,0,sizeof(newPalette));
+    newPalette[15] = RGB24_TO_VDPCOLOR(0xEEEEEE);
+    if(states[currentState].init)
+        states[currentState].init();
+    PAL_fadeIn(0,63,newPalette,15,TRUE);
+}
+
 void changeState(enum States newState)
 {
     if(newState >= STATE_COUNT)
     {
         SYS_die("Invalid game state!");
     }
-    switch(newState)
-    {
-        case ST_TITLESTATE:
-            PAL_setColors(0,palette_black,64,CPU);
-            break;
-        default:
-            PAL_fadeOut(0,63,10,FALSE);
-            break;
-    }
+    PAL_fadeOut(0,63,10,FALSE);
     if(states[currentState].stop)
         states[currentState].stop();
     VDP_clearPlane(BG_A,TRUE);

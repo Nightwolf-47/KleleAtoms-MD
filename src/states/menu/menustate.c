@@ -280,7 +280,6 @@ void menustate_init(void)
     }
     menuBackground = unpackImage(&texMenuBG,NULL);
     setupMenuPalette(settings.useOldColors);
-    loadSRAM(); //Load settings and savegame (if exists)
     VDP_drawImageEx(BG_B,menuBackground,TILE_ATTR_FULL(PAL1,FALSE,FALSE,FALSE,TILE_USERINDEX),0,0,FALSE,TRUE);
     isAboutPage = FALSE;
     drawMenu();

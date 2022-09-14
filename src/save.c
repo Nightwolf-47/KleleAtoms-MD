@@ -45,6 +45,7 @@ void invalidateSRAM(void)
 {
     SRAM_enable();
     SRAM_writeByte(0,0x00); //SRAM is now invalid and won't be loaded until next save
+    SRAM_writeByte(SAVEDATA_SRAM_POS,0x00); //Saved game is now invalid as well in case settings set byte 0 to 0x47 again
     SRAM_disable();
     saveValid = FALSE;
 }
@@ -134,6 +135,7 @@ void saveGameData(void)
     {
         SRAM_writeByte(i+SAVEDATA_SRAM_POS,saveMem[i]);
     }
+    saveValid = TRUE;
     SRAM_disable();
 }
 
