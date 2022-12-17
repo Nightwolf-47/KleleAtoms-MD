@@ -25,7 +25,9 @@ struct KASettings {
     u8 player2;
     u8 player3;
     u8 player4;
+    u8 unused1; //Used to be taken by isHotSeat in 1.1.1 and older
     bool isHotSeat;
+    u8 unused2; //Used to be taken by useOldColors in 1.1.1 and older
     bool useOldColors;
 };
 

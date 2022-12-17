@@ -41,6 +41,20 @@ const char* optNames[OPTIONCOUNT] = {
     "About"
 };
 
+const char* optDescriptions[OPTIONCOUNT] = {
+    "",
+    "Set the grid width. (5-12)",
+    "Set the grid height. (4-7)",
+    "Types: None, Human, AI1, AI2, AI3.",
+    "Types: None, Human, AI1, AI2, AI3.",
+    "Types: None, Human, AI1, AI2, AI3.",
+    "Types: None, Human, AI1, AI2, AI3.",
+    "Choose in-game player colors.",
+    "Use one controller per player.",
+    "Will reset ALL settings.",
+    "View credits, version info, etc."
+};
+
 const char* ptnames[5] = { //Player type names
     "None",
     "Human",
@@ -63,10 +77,20 @@ void setupMenuPalette(bool oldColors)
         newPalette[5] = RGB24_TO_VDPCOLOR(0xEE0000);
         newPalette[6] = RGB24_TO_VDPCOLOR(0xCC2200);
     }
+    newPalette[47] = RGB24_TO_VDPCOLOR(0xFFA500);
     memcpy(&newPalette[16],menuBackground->palette->data,sizeof(u16)*menuBackground->palette->length);
 }
 
-//Wrap around the menu selection if needed and play sound
+//Draw selected option description
+inline void drawOptDescription()
+{
+    VDP_clearText(1,26,38);
+    VDP_setTextPalette(PAL2);
+    VDP_drawText(optDescriptions[menuSel],GETCENTERX(optDescriptions[menuSel]),26);
+    VDP_setTextPalette(PAL0);
+}
+
+//Wrap around the menu selection if needed, show a description and play sound
 void fixMenuSelPos(void)
 {
     if(menuSel>=OPTIONCOUNT)
@@ -75,6 +99,7 @@ void fixMenuSelPos(void)
         menuSel=OPTIONCOUNT-1;
     XGM_stopPlayPCM(SOUND_PCM_CH2);
     XGM_startPlayPCM(SFX_CLICK,0,SOUND_PCM_CH2);
+    drawOptDescription();
 }
 
 //Draw option value in the proper position
@@ -133,6 +158,7 @@ void drawMenu(void)
         VDP_drawText(optNames[i],3,4+(i<<1));
         updateVal(i);
     }
+    drawOptDescription();
 }
 
 //Draw About screen
@@ -153,7 +179,7 @@ void drawAbout(void)
     strPtr = "Title screen image made by GreffMASTER";
     VDP_drawText(strPtr,GETCENTERX(strPtr),10);
     VDP_drawText("Software used:",1,14);
-    VDP_drawText("SGDK 1.70 - Compiler/Development",1,16);
+    VDP_drawText("SGDK 1.80 - Compiler/Development",1,16);
     VDP_drawText("GIMP 2.10 - Graphics",1,18);
     VDP_drawText("SFXR      - Sounds",1,20);
     strPtr = "Press any button to go back";
@@ -213,7 +239,7 @@ void menuOptionAction(enum ActionType at)
             return;
             break;
         case 1:
-            settings.gridWidth = moveOption(settings.gridWidth,7,12,isOptDecreasing);
+            settings.gridWidth = moveOption(settings.gridWidth,5,12,isOptDecreasing);
             break;
         case 2:
             settings.gridHeight = moveOption(settings.gridHeight,4,7,isOptDecreasing);
@@ -280,7 +306,7 @@ void menustate_init(void)
     }
     menuBackground = unpackImage(&texMenuBG,NULL);
     setupMenuPalette(settings.useOldColors);
-    VDP_drawImageEx(BG_B,menuBackground,TILE_ATTR_FULL(PAL1,FALSE,FALSE,FALSE,TILE_USERINDEX),0,0,FALSE,TRUE);
+    VDP_drawImageEx(BG_B,menuBackground,TILE_ATTR_FULL(PAL1,FALSE,FALSE,FALSE,TILE_USER_INDEX),0,0,FALSE,TRUE);
     isAboutPage = FALSE;
     drawMenu();
 }

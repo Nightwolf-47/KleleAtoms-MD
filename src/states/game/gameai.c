@@ -10,7 +10,7 @@ bool aiPlayerTab[4] = {0,0,0,0};
 
 int aiDifficulty[4] = {2,2,2,2};
 
-s16 ccdCheckTab[84] = {-1}; //Corner check table - used for checking for atoms in diagonally neighboring tiles to prevent cheesing AI 3
+s16 ccdCheckTab[MAXGRIDSIZE] = {-1}; //Corner check table - used for checking for atoms in diagonally neighboring tiles to prevent cheesing AI 3
 
 #define NOTILE -1
 
@@ -103,13 +103,13 @@ bool aiCheckPreCrit(u8 x, u8 y)
 }
 
 //Get a list of tiles and special tiles (higher priority)
-void aiGetSpecialTiles(int difficulty, s16 (*psptiles)[84], s16 (*ptiles)[84], s16* pspcount, s16* ptcount)
+void aiGetSpecialTiles(int difficulty, s16 (*psptiles)[MAXGRIDSIZE], s16 (*ptiles)[MAXGRIDSIZE], s16* pspcount, s16* ptcount)
 {
     s16* sptiles = *psptiles; //Special tiles
     s16* tiles = *ptiles; //Normal tiles
-    s16 advtiles[84] = {0}; //Tiles with advantage over another player
+    s16 advtiles[MAXGRIDSIZE] = {0}; //Tiles with advantage over another player
     s16 advcount = 0;
-    s16 natiles[84] = {0}; //Not avoided tiles
+    s16 natiles[MAXGRIDSIZE] = {0}; //Not avoided tiles
     s16 nacount = 0;
     bool wasSpCorner = FALSE; //TRUE if there was a Special corner
     bool wasAdvCorner = FALSE; //TRUE if there was a corner with Advantage
@@ -241,8 +241,8 @@ void aiThinker(void)
     u8 ty = 0;
     if(aiDifficulty[curPlayer] <= 3)
     {
-        s16 sptiles[84] = {0};
-        s16 tiles[84] = {0};
+        s16 sptiles[MAXGRIDSIZE] = {0};
+        s16 tiles[MAXGRIDSIZE] = {0};
         s16 spcount = 0, tcount = 0;
         aiGetSpecialTiles(aiDifficulty[curPlayer],&sptiles,&tiles,&spcount,&tcount);
         if(spcount > 0) //Choose a random corner/special/advantage tile

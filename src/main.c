@@ -10,7 +10,7 @@ void joyEventHandler(u16 joy, u16 changed, u16 state)
         states[currentState].joyevent(joy,changed,state);
 }
 
-int main(u16 hard)
+int main(bool hard)
 {
     JOY_init();
     SPR_init();

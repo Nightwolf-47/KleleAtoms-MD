@@ -9,13 +9,11 @@
 
 #define PMOVETABNONE 0x8080
 
-#define ANIMTABNONE 0x8080
-
 #define EXPLOSIONINDEX 0xFF
 
 struct KAGrid grid; //In-game grid
 
-u8 critGrid[84]; //Array of critical atom amounts for each tile
+u8 critGrid[MAXGRIDSIZE]; //Array of critical atom amounts for each tile
 
 bool animPlaying; //If TRUE, an animation is playing
 
@@ -371,7 +369,7 @@ void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4])
         SYS_die("Invalid grid size");
         return;
     }
-    memset(grid.tiles,0,84*sizeof(struct Tile));
+    memset(grid.tiles,0,MAXGRIDSIZE*sizeof(struct Tile));
     for(int x=0; x<grid.width; x++) //Reset grid player number and precalculate critical atom amount for each grid tile
     {
         for(int y=0; y<grid.height; y++)

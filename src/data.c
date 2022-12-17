@@ -9,7 +9,7 @@ u8 currentState = ST_GAMESTATE;
 
 bool randomNoPattern = TRUE;
 
-const char* versionStr = "1.1.1";
+const char* versionStr = "1.1.2";
 
 u16 newPalette[64] = {0};
 
@@ -29,6 +29,8 @@ void data_init(void)
     settings.player4 = 0;
     settings.isHotSeat = TRUE;
     settings.useOldColors = FALSE;
+    settings.unused1 = 0;
+    settings.unused2 = 0;
 }
 
 void data_initsfx(void)
@@ -68,7 +70,7 @@ void initState(enum States newState)
     }
     PAL_setColors(0,palette_black,64,CPU);
     vImageCount = 0;
-    curTileInd = TILE_USERINDEX;
+    curTileInd = TILE_USER_INDEX;
     currentState = newState;
     memset(newPalette,0,sizeof(newPalette));
     newPalette[15] = RGB24_TO_VDPCOLOR(0xEEEEEE);
@@ -92,7 +94,7 @@ void changeState(enum States newState)
     SPR_defragVRAM();
     SPR_update();
     vImageCount = 0;
-    curTileInd = TILE_USERINDEX;
+    curTileInd = TILE_USER_INDEX;
     currentState = newState;
     memset(newPalette,0,sizeof(newPalette));
     newPalette[15] = RGB24_TO_VDPCOLOR(0xEEEEEE);

@@ -41,11 +41,15 @@ void setupGamePalettes(bool oldColors)
     {
         newPalette[5] = RGB24_TO_VDPCOLOR(0xF80048);
         newPalette[6] = RGB24_TO_VDPCOLOR(0xC82448);
+        newPalette[7] = RGB24_TO_VDPCOLOR(0xF80048);
+        newPalette[8] = RGB24_TO_VDPCOLOR(0xC82448);
     }
     else
     {
         newPalette[5] = RGB24_TO_VDPCOLOR(0xEE0000);
         newPalette[6] = RGB24_TO_VDPCOLOR(0xCC2200);
+        newPalette[7] = RGB24_TO_VDPCOLOR(0xEE0000);
+        newPalette[8] = RGB24_TO_VDPCOLOR(0xCC2200);
     }
     
 
@@ -119,7 +123,7 @@ void drawPauseSelPos()
     VDP_clearTileMapRect(BG_B,23,2,1,1);
     VDP_clearTileMapRect(BG_B,5,4,1,1);
     VDP_clearTileMapRect(BG_B,23,4,1,1);
-    VDP_drawImageEx(BG_B,vidImgPauseAtom->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgPauseAtom->vPos),5+(18*pauseOptRight),2+(2*pauseOptDown),FALSE,TRUE);
+    VDP_drawImageEx(BG_B,vidImgPauseAtom->img,TILE_ATTR_FULL(PAL0,1,FALSE,FALSE,vidImgPauseAtom->vPos),5+(18*pauseOptRight),2+(2*pauseOptDown),FALSE,TRUE);
 }
 
 //Draw the pause menu
@@ -130,6 +134,8 @@ void pauseDraw(void)
     SPR_setVisibility(selector,HIDDEN);
     const char* strPtr;
     strPtr = "PAUSED";
+    VDP_setTextPriority(1);
+    VDP_setHilightShadow(TRUE);
     VDP_drawText(strPtr,GETCENTERX(strPtr),0);
     VDP_drawText("Resume",7,2);
     VDP_drawText("Save & Quit",25,2);
@@ -141,6 +147,8 @@ void pauseDraw(void)
 //Draw the grid (if drawgrid==TRUE), player icons and AI difficulty information
 void gamePreDraw(bool drawgrid)
 {
+    VDP_setHilightShadow(FALSE);
+    VDP_setTextPriority(0);
     VDP_clearPlane(BG_A,TRUE);
     VDP_drawText(">",5+8*curPlayer,3);
     VDP_drawText("<",8+8*curPlayer,3);
@@ -186,7 +194,7 @@ void gamePreDraw(bool drawgrid)
 void gamestate_init(void)
 {
     memset(gamePlayerJoys,0,sizeof(gamePlayerJoys));
-    vidImgPauseAtom = reserveVImage(&texAtom);
+    vidImgPauseAtom = reserveVImage(&texSelAtom);
     vidImgPlayer = reserveVImage(&texPlayer);
     vidImgBorderH = reserveVImage(&texBorderH);
     vidImgBorderV = reserveVImage(&texBorderV);
@@ -211,13 +219,13 @@ void gamestate_init(void)
     else //Demo mode, generate "random" grid, set player count and AI difficulty
     {
         u8 pttab[4] = {0,0,0,0};
-        s16 rpcount = (random() % 3) + 2;
+        s16 rpcount = (random() % 3) + 2; // 2-4
         for(int i=0; i<rpcount; i++)
         {
-            pttab[i] = (random() % 3) + 2;
+            pttab[i] = (random() % 3) + 2; // 2-4
         }
-        s16 rgh = (random() & 3) + 4;
-        s16 rgw = (random() % 6) + 7;
+        s16 rgh = (random() & 3) + 4; // 4-7
+        s16 rgw = (random() & 7) + 5; // 5-12
         logic_loadAll(rgw,rgh,&pttab);
     }
     gamePreDraw(TRUE);
@@ -441,4 +449,7 @@ void gamestate_stop(void)
         selector = NULL;
     }
     logic_stop();
+    //Reset pause menu shadow
+    VDP_setTextPriority(0);
+    VDP_setHilightShadow(FALSE);
 }

@@ -18,6 +18,8 @@
 
 #define PACKCoords8(x,y) (((x)<<4) | ((y) & 0xF))
 
+#define MAXGRIDSIZE 84 //Max grid size (12*7)
+
 struct Tile
 {
     s16 playerNum;
@@ -42,12 +44,12 @@ struct KAGrid
 {
     int width;
     int height;
-    struct Tile tiles[84]; //In-game tiles, 12*7 -> 84 max
+    struct Tile tiles[MAXGRIDSIZE];
 };
 
 extern struct KAGrid grid;
 
-extern u8 critGrid[84];
+extern u8 critGrid[MAXGRIDSIZE];
 
 extern bool animPlaying;
 

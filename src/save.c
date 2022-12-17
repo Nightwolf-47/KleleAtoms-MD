@@ -34,7 +34,7 @@ struct TileData {
 
 struct SaveFile { //Full KSF data with static size
     struct SFHeader header;
-    struct TileData tiles[84]; //84 is the max tile amount (12*7)
+    struct TileData tiles[MAXGRIDSIZE];
 };
 
 struct SaveFile saveData; //Structure used when loading and saving data to SRAM

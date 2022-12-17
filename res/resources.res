@@ -7,7 +7,7 @@ IMAGE texTileExp "graphics/tileexp.png" 0
 IMAGE texPlayer "graphics/player.png" 0
 IMAGE texBorderH "graphics/borderh.png" 0
 IMAGE texBorderV "graphics/borderv.png" 0
-IMAGE texAtom "graphics/atom.png" 0
+IMAGE texSelAtom "graphics/selatom.png" 0
 IMAGE texTitleScr0 "graphics/titlescreen0.png" 2
 IMAGE texTitleScr1 "graphics/titlescreen1.png" 2
 IMAGE texMenuBG "graphics/menubg.png" 2

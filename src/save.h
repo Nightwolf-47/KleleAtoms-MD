@@ -18,7 +18,7 @@ void invalidateSRAM(void);
 //Load game data from SRAM
 fix32 loadGameData(void);
 
-//Save game data to SRAM as KSF (KleleAtoms 1.3 save format)
+//Save game data to SRAM
 void saveGameData(void);
 
 extern bool saveValid;
