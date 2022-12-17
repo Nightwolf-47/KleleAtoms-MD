@@ -26,5 +26,9 @@ If a player loses all their atoms, they lose. The last standing player wins the 
 **DrPetter** - SFXR, a tool used to make sounds for this game.  
 **[GreffMASTER](https://github.com/GreffMASTER)** - Title screen/README.MD image.
 
+## SGDK information
+Since version 1.1.2, SGDK 1.80 is required to compile this game.  
+Older versions require SGDK 1.70.
+
 ## License
 This game is licensed under the [MIT License](https://github.com/Nightwolf-47/KleleAtoms-MD/blob/master/LICENSE).  
