@@ -14,7 +14,7 @@ If a player loses all their atoms, they lose. The last standing player wins the 
 \*corner - 2 atoms, side - 3 atoms, otherwise 4 atoms (or more)  
 
 ## Options
-- Grid width - Set ingame grid width (7-12)  
+- Grid width - Set ingame grid width (5-12)  
 - Grid height - Set ingame grid height (4-7)  
 - Player 1-4 type - Set player type (None, Human, AI 1, AI 2, AI 3) - only 2 players can be None at the same time.  
 - Player colors - Choose between default colors and the ones used in early development versions (original).  
