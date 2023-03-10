@@ -5,7 +5,7 @@
 
 bool isAboutPage = FALSE;
 
-s16 menuSel = 0;
+s16 menuSel = 0; //Selected option
 
 #define RIGHTALIGNX(str,x) ((x)+1-strlen(str))
 
@@ -19,7 +19,7 @@ Image* menuBackground;
 
 Sprite* menuSelSprites[2]; //Menu selection sprites
 
-fix32 menuBGScroll = 0;
+fix32 menuBGScroll = 0; //Menu background scroll offset in pixels
 
 enum ActionType {
     AT_LEFT,
@@ -27,6 +27,7 @@ enum ActionType {
     AT_PRESS
 };
 
+//Menu option names
 const char* optNames[OPTIONCOUNT] = {
     "Start the game",
     "Grid width",
@@ -41,6 +42,7 @@ const char* optNames[OPTIONCOUNT] = {
     "About"
 };
 
+//Menu option descriptions (printed when selected)
 const char* optDescriptions[OPTIONCOUNT] = {
     "",
     "Set the grid width. (5-12)",
@@ -313,8 +315,8 @@ void menustate_init(void)
 
 void menustate_update(fix32 dt)
 {
-    menuBGScroll += dt*20;
-    menuBGScroll &= 0x7FFFF;
+    menuBGScroll += dt*20; //Move background 20 pixels per second
+    menuBGScroll &= 0x7FFFF; //Limit background scroll offset to 511 pixels
     VDP_setHorizontalScroll(BG_B,-fix32ToInt(menuBGScroll));
     if(!isAboutPage) //Update selection sprite positions
     {
@@ -376,6 +378,7 @@ void menustate_stop(void)
     if(menuBackground)
     {
         MEM_free(menuBackground);
+        menuBackground = NULL;
     }
     saveSettings();
 }

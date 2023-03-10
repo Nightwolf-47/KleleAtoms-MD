@@ -50,7 +50,9 @@ void data_init(void);
 
 void data_reset(void);
 
-void data_initsfx(void); //Initialize all sounds
+void data_stateInit(void);
+
+void data_initsfx(void);
 
 void initState(enum States newState);
 

@@ -65,19 +65,9 @@ extern int playerCount;
 
 extern int startPlayers;
 
-extern u8* atomStack;
-
 extern int asPos;
 
-extern struct KAExplodePos explodePos;
-
 extern s16 playerWon;
-
-extern int explosionCount;
-
-extern struct AtomPosition atompos[16];
-
-extern s16 atomposIndex;
 
 extern bool logicEnd;
 

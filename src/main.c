@@ -1,8 +1,5 @@
 #include "data.h"
 #include "save.h"
-#include "states/game/gamestate.h"
-#include "states/title/titlestate.h"
-#include "states/menu/menustate.h"
 
 void joyEventHandler(u16 joy, u16 changed, u16 state)
 {
@@ -14,21 +11,8 @@ int main(bool hard)
 {
     JOY_init();
     SPR_init();
-    states[ST_GAMESTATE].init = &gamestate_init;
-    states[ST_GAMESTATE].update = &gamestate_update;
-    states[ST_GAMESTATE].joyevent = &gamestate_joyevent;
-    states[ST_GAMESTATE].stop = &gamestate_stop;
 
-    states[ST_TITLESTATE].init = &titlestate_init;
-    states[ST_TITLESTATE].update = &titlestate_update;
-    states[ST_TITLESTATE].joyevent = &titlestate_joyevent;
-    states[ST_TITLESTATE].stop = &titlestate_stop;
-
-    states[ST_MENUSTATE].init = &menustate_init;
-    states[ST_MENUSTATE].update = &menustate_update;
-    states[ST_MENUSTATE].joyevent = &menustate_joyevent;
-    states[ST_MENUSTATE].stop = &menustate_stop;
-
+    data_stateInit(); //Initialize game states
     data_initsfx(); //Initialize sounds
 
     JOY_setEventHandler(&joyEventHandler);

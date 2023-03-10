@@ -22,6 +22,7 @@ bool pausing = FALSE; //Is the game waiting to be paused?
 bool isPaused = FALSE;
 
 VidImagePtr vidImgPlayer; //Player icons
+VidImagePtr vidImgPlayerAI; //AI-Controlled player icons
 VidImagePtr vidImgBorderH; //Horizontal grid border
 VidImagePtr vidImgBorderV; //Vertical grid border
 VidImagePtr vidImgPauseAtom; //Pause menu selection image
@@ -30,6 +31,7 @@ u16 gamePlayerJoys[4] = {0,0,0,0}; //Controller ID for each player (ID is contro
 
 extern bool aiPlayerTab[4];
 
+//Set up colors that will be used by the game (except AI icon level colors)
 void setupGamePalettes(bool oldColors)
 {
     //PAL0 (Red)
@@ -130,7 +132,7 @@ void drawPauseSelPos()
 void pauseDraw(void)
 {
     VDP_clearPlane(BG_A,TRUE);
-    VDP_clearTileMapRect(BG_B,0,0,40,6);
+    VDP_clearTileMapRect(BG_B,0,0,40,5);
     SPR_setVisibility(selector,HIDDEN);
     const char* strPtr;
     strPtr = "PAUSED";
@@ -149,19 +151,25 @@ void gamePreDraw(bool drawgrid)
 {
     VDP_setHilightShadow(FALSE);
     VDP_setTextPriority(0);
-    VDP_clearPlane(BG_A,TRUE);
-    VDP_drawText(">",5+8*curPlayer,3);
-    VDP_drawText("<",8+8*curPlayer,3);
-    for(int i=0; i<4; i++)
+    if(!logicEnd) //Don't remove the end message or overwrite it
     {
-        if(aiPlayerTab[i]) //Draw AI difficulty information
+        VDP_clearPlane(BG_A,TRUE);
+        VDP_drawText(">",5+8*curPlayer,3);
+        VDP_drawText("<",8+8*curPlayer,3);
+        for(int i=0; i<4; i++)
         {
-            char aistr[8];
-            sprintf(aistr,"AI %d",aiDifficulty[i]);
-            VDP_clearText(5+8*i,5,4);
-            VDP_drawText(aistr,5+8*i,5);
+            if(aiPlayerTab[i]) //Draw AI player icon
+            {
+                VDP_drawImageEx(BG_B,vidImgPlayerAI->img,TILE_ATTR_FULL(i,0,FALSE,FALSE,vidImgPlayerAI->vPos),6+8*i,1,FALSE,TRUE);
+            }
+            else //Draw player icon
+            {
+                VDP_drawImageEx(BG_B,vidImgPlayer->img,TILE_ATTR_FULL(i,0,FALSE,FALSE,vidImgPlayer->vPos),6+8*i,1,FALSE,TRUE);
+            }
+            
         }
     }
+    
     if(drawgrid)
     {
         for(int x=0; x<grid.width; x++) //Draw tiles
@@ -181,14 +189,6 @@ void gamePreDraw(bool drawgrid)
             VDP_drawImageEx(BG_B,vidImgBorderV->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgBorderV->vPos),gridStartX-1,(y*3)+gridStartY,FALSE,TRUE);
         }
     }
-
-    if(!logicEnd) //Don't draw player icons when the game has ended before it started (less than 2 players or lack of controllers)
-    {
-        for(int i=0; i<4; i++)
-        {
-            VDP_drawImageEx(BG_B,vidImgPlayer->img,TILE_ATTR_FULL(i,0,FALSE,FALSE,vidImgPlayer->vPos),6+8*i,1,FALSE,TRUE);
-        }
-    }
 }
 
 void gamestate_init(void)
@@ -196,6 +196,7 @@ void gamestate_init(void)
     memset(gamePlayerJoys,0,sizeof(gamePlayerJoys));
     vidImgPauseAtom = reserveVImage(&texSelAtom);
     vidImgPlayer = reserveVImage(&texPlayer);
+    vidImgPlayerAI = reserveVImage(&texPlayerAI);
     vidImgBorderH = reserveVImage(&texBorderH);
     vidImgBorderV = reserveVImage(&texBorderV);
     setupGamePalettes(settings.useOldColors);

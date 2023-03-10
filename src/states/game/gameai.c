@@ -185,6 +185,7 @@ void aiGetSpecialTiles(int difficulty, s16 (*psptiles)[MAXGRIDSIZE], s16 (*ptile
                             if(isSpTile)
                             {
                                 corcount=0;
+                                corners[corcount++] = PACKCoords(x,y);
                                 wasSpCorner = TRUE;
                             }
                             else if(isAdvantage)

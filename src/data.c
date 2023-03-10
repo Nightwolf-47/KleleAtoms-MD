@@ -1,6 +1,9 @@
 #include "data.h"
 #include "save.h"
 #include "../res/resources.h"
+#include "states/game/gamestate.h"
+#include "states/title/titlestate.h"
+#include "states/menu/menustate.h"
 
 struct KASettings settings;
 
@@ -9,7 +12,7 @@ u8 currentState = ST_GAMESTATE;
 
 bool randomNoPattern = TRUE;
 
-const char* versionStr = "1.1.2";
+const char* versionStr = "1.1.3";
 
 u16 newPalette[64] = {0};
 
@@ -33,6 +36,7 @@ void data_init(void)
     settings.unused2 = 0;
 }
 
+//Initialize all sounds
 void data_initsfx(void)
 {
     XGM_setPCM(SFX_CLICK,sfx_click,sizeof(sfx_click));
@@ -44,6 +48,25 @@ void data_reset(void)
 {
     data_init();
     invalidateSRAM();
+}
+
+//Initialize game states
+void data_stateInit(void)
+{
+    states[ST_GAMESTATE].init = &gamestate_init;
+    states[ST_GAMESTATE].update = &gamestate_update;
+    states[ST_GAMESTATE].joyevent = &gamestate_joyevent;
+    states[ST_GAMESTATE].stop = &gamestate_stop;
+
+    states[ST_TITLESTATE].init = &titlestate_init;
+    states[ST_TITLESTATE].update = &titlestate_update;
+    states[ST_TITLESTATE].joyevent = &titlestate_joyevent;
+    states[ST_TITLESTATE].stop = &titlestate_stop;
+
+    states[ST_MENUSTATE].init = &menustate_init;
+    states[ST_MENUSTATE].update = &menustate_update;
+    states[ST_MENUSTATE].joyevent = &menustate_joyevent;
+    states[ST_MENUSTATE].stop = &menustate_stop;
 }
 
 //Returns a pointer to a VidReservedImage struct

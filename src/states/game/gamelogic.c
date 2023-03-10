@@ -5,8 +5,6 @@
 
 #define ATOMSTACKSIZE 4000
 
-#define SPRITEPURGATORYX -16
-
 #define PMOVETABNONE 0x8080
 
 #define EXPLOSIONINDEX 0xFF
@@ -63,12 +61,14 @@ const fix32 baseExplodeTime = FIX32(0.3); //Longest duration of explosion sprite
 void logic_endMessage(const char* msg)
 {
     logicEnd = TRUE;
+    //Clear everything except the grid itself
     VDP_clearText(5+8*curPlayer,3,1);
     VDP_clearText(8+8*curPlayer,3,1);
     VDP_clearText(0,5,40);
-    VDP_clearTileMapRect(BG_B,1,0,40,6);
+    VDP_clearTileMapRect(BG_B,1,0,40,5);
     VDP_clearText(31,0,9);
     VDP_clearText(1,0,10);
+    //Print the end message on screen
     VDP_drawText(msg,GETCENTERX(msg),0);
     VDP_drawText("Press any button to go to menu",5,2);
     curPlayer = 0;
@@ -76,6 +76,7 @@ void logic_endMessage(const char* msg)
 
 //drawTile and tileToPixels are the only functions in this file without "logic_" prefix that can be accessed outside of it
 
+//Draw an atom tile with a given position, player number and atom count
 void drawTile(u8 x, u8 y, s16 player, u8 atomCount)
 { 
     atomCount = (atomCount==EXPLOSIONINDEX) ? 5 : min(atomCount,4);
@@ -345,6 +346,29 @@ void prepareNewAtoms(u8 tx, u8 ty)
     }
 }
 
+//Setup AI icon palettes depending on its difficulty (only during initialization)
+void setupAIIconPalettes(void)
+{
+    for(int i=0; i<4; i++)
+    {
+        if(aiPlayerTab[i])
+        {
+            switch(aiDifficulty[i])
+            {
+                case 3:
+                    newPalette[(i*16)+11] = RGB24_TO_VDPCOLOR(0xFF0000);
+                case 2:
+                    newPalette[(i*16)+10] = RGB24_TO_VDPCOLOR(0xFFFF00);
+                case 1:
+                    newPalette[(i*16)+9] = RGB24_TO_VDPCOLOR(0x00FF00);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
 const char* logic_getPlayerName(s16 playerNum)
 {
     return playerNames[playerNum];
@@ -364,7 +388,7 @@ void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4])
     ttimages[3] = reserveVImage(&texTile3);
     ttimages[4] = reserveVImage(&texTile4);
     ttimages[5] = reserveVImage(&texTileExp);
-    if(gridHeight > 7 || gridWidth > 12) //Prevent overflow from invalid grid size
+    if(gridHeight*gridWidth > MAXGRIDSIZE) //Prevent overflow from invalid grid size
     {
         SYS_die("Invalid grid size");
         return;
@@ -452,6 +476,7 @@ void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4])
         atomSprites[i] = SPR_addSprite(&sprAtom,0,0,TILE_ATTR(PAL0,0,FALSE,FALSE));
         SPR_setVisibility(atomSprites[i],HIDDEN);
     }
+    setupAIIconPalettes();
 }
 
 //Fix grid start position, critical atom table values and player icon colors after loading a saved game
@@ -500,6 +525,7 @@ void logic_fixLoadedData()
                 break;
         }
     }
+    setupAIIconPalettes();
     animPlaying = FALSE;
 }
 
@@ -668,7 +694,7 @@ void logic_draw(fix32 dt)
         {
             for(int i=0; i<atomposIndex; i++) //Hide all the sprites for later use
             {
-                SPR_setPosition(atomSprites[i],SPRITEPURGATORYX,0);
+                SPR_setPosition(atomSprites[i],-16,0);
                 SPR_setVisibility(atomSprites[i],HIDDEN);
             }
             atomposIndex = 0;

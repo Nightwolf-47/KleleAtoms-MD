@@ -187,10 +187,10 @@ void load_cpst(s16 pnum, u8 val)
 fix32 loadGameData(void)
 {
     fix32 ttime = -1;
-    if(saveValid)
+    if(saveValid && saveData.header.gridWidth*saveData.header.gridHeight <= MAXGRIDSIZE)
     {
-        grid.width = min(max(saveData.header.gridWidth,7),12);
-        grid.height = min(max(saveData.header.gridHeight,4),7);
+        grid.width = saveData.header.gridWidth;
+        grid.height = saveData.header.gridHeight;
         startPlayers = saveData.header.totalPlayers;
         playerCount = saveData.header.playerCount;
         curPlayer = saveData.header.currentPlayer;
