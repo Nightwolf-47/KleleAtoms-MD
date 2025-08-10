@@ -181,7 +181,7 @@ void drawAbout(void)
     strPtr = "Title screen image made by GreffMASTER";
     VDP_drawText(strPtr,GETCENTERX(strPtr),10);
     VDP_drawText("Software used:",1,14);
-    VDP_drawText("SGDK 1.80 - Compiler/Development",1,16);
+    VDP_drawText("SGDK 2.11 - Compiler/Development",1,16);
     VDP_drawText("GIMP 2.10 - Graphics",1,18);
     VDP_drawText("SFXR      - Sounds",1,20);
     strPtr = "Press any button to go back";
@@ -304,7 +304,7 @@ void menustate_init(void)
     menuSelSprites[1] = SPR_addSpriteSafe(&sprAtom,304,24,TILE_ATTR(PAL0,0,FALSE,FALSE));
     if(!menuSelSprites[0] || !menuSelSprites[1])
     {
-        SYS_die("Couldn't load selector sprites");
+        SYS_die("Couldn't load selector sprites",NULL);
     }
     menuBackground = unpackImage(&texMenuBG,NULL);
     setupMenuPalette(settings.useOldColors);
@@ -317,7 +317,7 @@ void menustate_update(fix32 dt)
 {
     menuBGScroll += dt*20; //Move background 20 pixels per second
     menuBGScroll &= 0x7FFFF; //Limit background scroll offset to 511 pixels
-    VDP_setHorizontalScroll(BG_B,-fix32ToInt(menuBGScroll));
+    VDP_setHorizontalScroll(BG_B,-F32_toInt(menuBGScroll));
     if(!isAboutPage) //Update selection sprite positions
     {
         SPR_setPosition(menuSelSprites[0],6,32+(menuSel<<4));

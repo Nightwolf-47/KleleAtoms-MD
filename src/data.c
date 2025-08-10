@@ -12,7 +12,7 @@ u8 currentState = ST_GAMESTATE;
 
 bool randomNoPattern = TRUE;
 
-const char* versionStr = "1.1.3";
+const char* versionStr = "1.1.4-dev";
 
 u16 newPalette[64] = {0};
 
@@ -70,13 +70,15 @@ void data_stateInit(void)
 }
 
 //Returns a pointer to a VidReservedImage struct
-VidImagePtr reserveVImage(const Image* img)
+VidImagePtr reserveVImage(const Image* img, bool preload)
 {
     if(vImageCount>=VIMAGE_MAXCOUNT)
     {
-        SYS_die("Too many images reserved");
+        SYS_die("Too many images reserved",NULL);
     }
     VidImagePtr vidimg = &vimages[vImageCount];
+    if(preload)
+        VDP_loadTileSet(img->tileset,curTileInd,CPU);
     vidimg->img = img;
     vidimg->vPos = curTileInd;
     curTileInd += img->tileset->numTile;
@@ -89,7 +91,7 @@ void initState(enum States newState)
 {
     if(newState >= STATE_COUNT)
     {
-        SYS_die("Invalid game state!");
+        SYS_die("Invalid game state!",NULL);
     }
     PAL_setColors(0,palette_black,64,CPU);
     vImageCount = 0;
@@ -106,7 +108,7 @@ void changeState(enum States newState)
 {
     if(newState >= STATE_COUNT)
     {
-        SYS_die("Invalid game state!");
+        SYS_die("Invalid game state!",NULL);
     }
     PAL_fadeOut(0,63,10,FALSE);
     if(states[currentState].stop)

@@ -18,10 +18,10 @@ void titlestate_init(void)
     titleScreen[1] = unpackImage(&texTitleScr1,NULL);
     if(!titleScreen[0] || !titleScreen[1])
     {
-        SYS_die("Could not load title screen!");
+        SYS_die("Could not load title screen!",NULL);
     }
-    vidImgTTS[0] = reserveVImage(titleScreen[0]);
-    vidImgTTS[1] = reserveVImage(titleScreen[1]);
+    vidImgTTS[0] = reserveVImage(titleScreen[0],FALSE);
+    vidImgTTS[1] = reserveVImage(titleScreen[1],FALSE);
     VDP_setTextPalette(PAL2);
     memcpy(newPalette,titleScreen[0]->palette->data,sizeof(u16)*titleScreen[0]->palette->length);
     memcpy(&newPalette[16],titleScreen[1]->palette->data,sizeof(u16)*titleScreen[1]->palette->length);

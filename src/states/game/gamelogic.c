@@ -80,7 +80,7 @@ void logic_endMessage(const char* msg)
 void drawTile(u8 x, u8 y, s16 player, u8 atomCount)
 { 
     atomCount = (atomCount==EXPLOSIONINDEX) ? 5 : min(atomCount,4);
-    VDP_drawImageEx(BG_B,ttimages[atomCount]->img,TILE_ATTR_FULL(player,0,FALSE,FALSE,ttimages[atomCount]->vPos),(x*3)+gridStartX,(y*3)+gridStartY,FALSE,TRUE);
+    VDP_setTileMapEx(BG_B,ttimages[atomCount]->img->tilemap,TILE_ATTR_FULL(player,0,FALSE,FALSE,ttimages[atomCount]->vPos),(x*3)+gridStartX,(y*3)+gridStartY,0,0,3,3,CPU);
 }
 
 void tileToPixels(u8 x, u8 y, s16* pixelx, s16* pixely)
@@ -153,7 +153,7 @@ bool putAtom(u8 x, u8 y, s16 newPlayer)
     s16 atplayer = atomTile->playerNum;
     if(atplayer<0 || atplayer>3)
     {
-        SYS_die("Wrong player on tile!"); 
+        SYS_die("Wrong player on tile!",NULL); 
     }
     drawTile(x,y,atplayer,0);
     s16 px;
@@ -162,11 +162,11 @@ bool putAtom(u8 x, u8 y, s16 newPlayer)
     atomTile->atomCount++;
     if(atomposIndex > 12)
     {
-        SYS_die("Too many sprites (more than 16) requested!");
+        SYS_die("Too many sprites (more than 16) requested!",NULL);
     }
     if(animTilePos > 3)
     {
-        SYS_die("Too many tiles with animations (more than 4) requested!");
+        SYS_die("Too many tiles with animations (more than 4) requested!",NULL);
     }
     s16 atpi = atomposIndex;
     for(int i=0; i<atomTile->atomCount; i++)
@@ -357,8 +357,10 @@ void setupAIIconPalettes(void)
             {
                 case 3:
                     newPalette[(i*16)+11] = RGB24_TO_VDPCOLOR(0xFF0000);
+                    // fall through
                 case 2:
                     newPalette[(i*16)+10] = RGB24_TO_VDPCOLOR(0xFFFF00);
+                    // fall through
                 case 1:
                     newPalette[(i*16)+9] = RGB24_TO_VDPCOLOR(0x00FF00);
                     break;
@@ -382,15 +384,15 @@ void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4])
     grid.width = gridWidth;
     gridStartX = 2+((36-(grid.width*3))>>1);
     gridStartY = 6+((21-(grid.height*3))>>1);
-    ttimages[0] = reserveVImage(&texTile); //Prepare tile images for drawing
-    ttimages[1] = reserveVImage(&texTile1);
-    ttimages[2] = reserveVImage(&texTile2);
-    ttimages[3] = reserveVImage(&texTile3);
-    ttimages[4] = reserveVImage(&texTile4);
-    ttimages[5] = reserveVImage(&texTileExp);
+    ttimages[0] = reserveVImage(&texTile,TRUE); //Prepare tile images for drawing
+    ttimages[1] = reserveVImage(&texTile1,TRUE);
+    ttimages[2] = reserveVImage(&texTile2,TRUE);
+    ttimages[3] = reserveVImage(&texTile3,TRUE);
+    ttimages[4] = reserveVImage(&texTile4,TRUE);
+    ttimages[5] = reserveVImage(&texTileExp,TRUE);
     if(gridHeight*gridWidth > MAXGRIDSIZE) //Prevent overflow from invalid grid size
     {
-        SYS_die("Invalid grid size");
+        SYS_die("Invalid grid size",NULL);
         return;
     }
     memset(grid.tiles,0,MAXGRIDSIZE*sizeof(struct Tile));
@@ -459,7 +461,7 @@ void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4])
     atomStack = MEM_alloc(ATOMSTACKSIZE); //Allocate 4000 bytes of memory to atomStack
     if(!atomStack)
     {
-        SYS_die("Couldn't allocate space for the atom stack!");
+        SYS_die("Couldn't allocate space for the atom stack!",NULL);
         return;
     }
     memset(atomStack,0,ATOMSTACKSIZE);
@@ -673,8 +675,8 @@ void logic_draw(fix32 dt)
         static fix32 leftMoveSpeed = 0;
         leftMoveSpeed += ATOMSPEED*dt*max(min(explosionCount,1000)/10,1);
         bool stillPlaying = FALSE; //TRUE if any atoms are moving
-        int movespeed = fix32ToInt(leftMoveSpeed);
-        leftMoveSpeed -= intToFix32(movespeed);
+        int movespeed = F32_toInt(leftMoveSpeed);
+        leftMoveSpeed -= FIX32(movespeed);
         for(int i=0; i<atomposIndex; i++)
         {
             if(!isAtomAtDestination(i)) //Move all atoms closer to the destination

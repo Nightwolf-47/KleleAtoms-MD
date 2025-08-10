@@ -73,6 +73,6 @@ extern struct VidReservedImage vimages[VIMAGE_MAXCOUNT];
 
 extern bool isDemoPlaying;
 
-VidImagePtr reserveVImage(const Image* img); //returns pointer to VidReservedImage struct
+VidImagePtr reserveVImage(const Image* img, bool preload); //returns pointer to VidReservedImage struct
 
 #endif //DATA_H_INCLUDED

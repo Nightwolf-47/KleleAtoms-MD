@@ -261,7 +261,7 @@ void aiThinker(void)
     }
     else
     {
-        SYS_die("Incorrect AI difficulty");
+        SYS_die("Incorrect AI difficulty",NULL);
     }
     logic_clickedTile(tx,ty,TRUE);
 }

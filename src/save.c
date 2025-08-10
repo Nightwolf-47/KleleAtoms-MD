@@ -81,7 +81,7 @@ u8 save_pst(s16 pnum)
             return 255;
             break;
         default:
-            SYS_die("Wrong player status");
+            SYS_die("Wrong player status",NULL);
             break;
     }
     return 255;
@@ -118,11 +118,11 @@ void saveGameData(void)
     saveData.header.player2AI = save_pai(1);
     saveData.header.player3AI = save_pai(2);
     saveData.header.player4AI = save_pai(3);
-    s32 sectime = fix32ToInt(startTime) & 0x1FFFFF;
+    s32 sectime = F32_toInt(startTime) & 0x7FFFF;
     s32 mintime = sectime / 60;
     saveData.header.seconds = (u8)(sectime % 60);
-    saveData.header.minutes = (u8)(mintime & 0xFF);
-    saveData.header.hours = (u8)(mintime >> 8);
+    saveData.header.minutes = (u8)(mintime % 60);
+    saveData.header.hours = (u8)(mintime / 60);
     for(int i=0; i<(grid.width*grid.height); i++)
     {
         saveData.tiles[i].atomCount = grid.tiles[i].atomCount;
@@ -203,7 +203,7 @@ fix32 loadGameData(void)
         load_cai(2,saveData.header.player3AI,2);
         load_cai(3,saveData.header.player4AI,2);
         s32 secTime = saveData.header.seconds+(saveData.header.minutes*60)+(saveData.header.hours*3600);
-        ttime = intToFix32(secTime);
+        ttime = FIX32(secTime);
         for(int i=0; i<(grid.width*grid.height); i++)
         {
             grid.tiles[i].atomCount = saveData.tiles[i].atomCount;
