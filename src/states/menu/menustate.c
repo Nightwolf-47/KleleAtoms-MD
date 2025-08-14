@@ -4,10 +4,14 @@
 #include "../../../res/resources.h"
 #include "menuatoms.h"
 
+#define RIGHTALIGNX(str,x) ((x)+1-strlen(str))
+
 #define MENU_BUTTON_COUNT 10
 
 static const fix32 initButtonTimer = FIX32(-0.15);
 static const fix32 actionButtonTimer = FIX32(0.2);
+
+const char* madebyStr = "Made by Nightwolf-47";
 
 typedef struct MenuButton {
     s16 x;
@@ -24,19 +28,6 @@ typedef struct ButtonPressed {
     fix32 timer;
 } ButtonPressed;
 
-static bool isInit;
-
-static int selectedButton;
-static ButtonPressed selectedPressed;
-
-static VidImagePtr buttonImg;
-static VidImagePtr buttonSmImg;
-
-static VidImagePtr multiIconImg;
-static VidImagePtr noMultiIconImg;
-
-static VidImagePtr menuTextImg;
-
 enum MenuButtonNames {
     MEB_TUTORIAL = 0,
     MEB_START,
@@ -50,17 +41,32 @@ enum MenuButtonNames {
     MEB_COLORMODE
 };
 
+static bool isInit;
+
+static int selectedButton = MEB_START;
+static ButtonPressed selectedPressed;
+
+static VidImagePtr buttonImg;
+static VidImagePtr buttonSmImg;
+
+static VidImagePtr multiIconImg;
+static VidImagePtr noMultiIconImg;
+
+static VidImagePtr menuTextImg;
+
+static bool changedState = FALSE;
+
 static MenuButton menuButtons[MENU_BUTTON_COUNT] = {
-    {3,7,FALSE,NULL,"Start the tutorial. (not implemented)"},   // Tutorial or About Menu
-    {15,7,FALSE,NULL,"Start the game."},  // Play/Load
-    {27,7,TRUE,NULL,"Player 1 type"},   // Player 1
-    {33,7,TRUE,NULL,"Player 2 type"},   // Player 2
-    {3,13,FALSE,NULL,"Set grid width. (5-12)"},  // Grid Width
-    {15,13,FALSE,NULL,"Set grid height. (4-7)"}, // Grid Height
-    {27,13,TRUE,NULL,"Player 3 type"},  // Player 3
-    {33,13,TRUE,NULL,"Player 4 type"},  // Player 4
-    {3,19,FALSE,NULL,"Use multiple controllers."},  // Multi-Controller
-    {15,19,FALSE,NULL,"Choose in-game player colors."}  // Color mode
+    {3,7,FALSE,NULL,"Open the tutorial."},              // Tutorial
+    {15,7,FALSE,NULL,"Start the game."},                // Play/Load
+    {27,7,TRUE,NULL,"Player 1 type"},                   // Player 1
+    {33,7,TRUE,NULL,"Player 2 type"},                   // Player 2
+    {3,13,FALSE,NULL,"Set grid width. (5-12)"},         // Grid Width
+    {15,13,FALSE,NULL,"Set grid height. (4-7)"},        // Grid Height
+    {27,13,TRUE,NULL,"Player 3 type"},                  // Player 3
+    {33,13,TRUE,NULL,"Player 4 type"},                  // Player 4
+    {3,19,FALSE,NULL,"Use multiple controllers."},      // Multi-Controller
+    {15,19,FALSE,NULL,"Use default in-game colors."}    // Color mode
 };
 
 const char* playerTypeNames[5] = {
@@ -71,6 +77,7 @@ const char* playerTypeNames[5] = {
     "AI 3"
 };
 
+//PAL_setColor equivalent that works both during initialization and after it
 static void setPaletteColor(u16 index, u16 value)
 {
     if(isInit)
@@ -79,6 +86,7 @@ static void setPaletteColor(u16 index, u16 value)
         PAL_setColor(index,value);
 }
 
+//PAL_getColor equivalent that works both during initialization and after it
 static u16 getPaletteColor(u16 index)
 {
     if(isInit)
@@ -87,6 +95,7 @@ static u16 getPaletteColor(u16 index)
         return PAL_getColor(index);
 }
 
+//Resets the player icon palette to show every color (like on AI 3)
 static void resetPlayerPalette(u8 index, u8 palStartIndex)
 {
     setPaletteColor(palStartIndex,RGB24_TO_VDPCOLOR(0x000000));
@@ -96,6 +105,7 @@ static void resetPlayerPalette(u8 index, u8 palStartIndex)
     setPaletteColor(palStartIndex+4,getPaletteColor(index*16+3));
 }
 
+//Updates the player palette to show the current player type
 static void updatePlayerPalette(u8 index)
 {
     u8 playerVal;
@@ -135,6 +145,7 @@ static void updatePlayerPalette(u8 index)
         setPaletteColor(palStartIndex+3,bgColor);
 }
 
+//Initalizes the menu palette (only use during menu initialization)
 static void setupMenuPalette(bool oldColors)
 {
     memcpy(newPalette,texButton.palette->data,sizeof(u16)*texButton.palette->length);
@@ -164,8 +175,8 @@ static void setupMenuPalette(bool oldColors)
     }
     else
     {
-        newPalette[17] = RGB24_TO_VDPCOLOR(0x0000EE);
-        newPalette[19] = newPalette[30] = RGB24_TO_VDPCOLOR(0x0000CC);
+        newPalette[17] = RGB24_TO_VDPCOLOR(0x0022EE);
+        newPalette[19] = newPalette[30] = RGB24_TO_VDPCOLOR(0x0000EE);
     }
     newPalette[18] = RGB24_TO_VDPCOLOR(0xEEEEEE);
     newPalette[26] = RGB24_TO_VDPCOLOR(0x000000);
@@ -198,6 +209,7 @@ static void setupMenuPalette(bool oldColors)
     newPalette[50] = RGB24_TO_VDPCOLOR(0xEEEEEE);
     newPalette[58] = RGB24_TO_VDPCOLOR(0x000000);
     newPalette[15] = RGB24_TO_VDPCOLOR(0x000000);
+    newPalette[31] = RGB24_TO_VDPCOLOR(0xFFFFFF);
     newPalette[47] = RGB24_TO_VDPCOLOR(0xFFA500);
 
     for(u16 i=0; i<4; i++)
@@ -206,6 +218,7 @@ static void setupMenuPalette(bool oldColors)
     }
 }
 
+//Updates menu colors when the colors option is selected
 static void updateMenuColors(bool oldColors)
 {
     //PAL0 (Red)
@@ -231,9 +244,9 @@ static void updateMenuColors(bool oldColors)
     }
     else
     {
-        PAL_setColor(17,RGB24_TO_VDPCOLOR(0x0000EE));
-        PAL_setColor(19,RGB24_TO_VDPCOLOR(0x0000CC));
-        PAL_setColor(30,RGB24_TO_VDPCOLOR(0x0000CC));
+        PAL_setColor(17,RGB24_TO_VDPCOLOR(0x0022EE));
+        PAL_setColor(19,RGB24_TO_VDPCOLOR(0x0000EE));
+        PAL_setColor(30,RGB24_TO_VDPCOLOR(0x0000EE));
     }
 
     //PAL2 (Green)
@@ -270,6 +283,7 @@ static void updateMenuColors(bool oldColors)
     }
 }
 
+//Draws the icon for the specific button
 static void drawMenuIcon(u16 index)
 {
     MenuButton* curButton = &menuButtons[index]; 
@@ -298,12 +312,20 @@ static void drawMenuIcon(u16 index)
         case MEB_GRIDWIDTH:
             iconWidth = 5;
             break;
+        case MEB_COLORMODE:
+            VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(PAL1,1,0,0,curButton->icon->vPos),curButton->x,curButton->y,0,0,3,5,CPU);
+            VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(PAL0,1,0,0,curButton->icon->vPos),curButton->x+3,curButton->y,3,0,1,5,CPU);
+            VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(PAL2,1,0,0,curButton->icon->vPos),curButton->x+4,curButton->y,4,0,1,5,CPU);
+            VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(PAL3,1,0,0,curButton->icon->vPos),curButton->x+5,curButton->y,5,0,1,5,CPU);
+            VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(PAL1,1,0,0,curButton->icon->vPos),curButton->x+6,curButton->y,6,0,3,5,CPU);
+            return;
         default:
             break;
     }
     VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(palIndex,1,0,0,curButton->icon->vPos),curButton->x,curButton->y,0,0,iconWidth,5,CPU);
 }
 
+// Draws the button with specified parameters and optionally its icon
 static void drawMenuButton(u16 index, bool drawIcon, bool selected, bool pressed)
 {
     MenuButton* curButton = &menuButtons[index];
@@ -323,6 +345,7 @@ static void drawMenuButton(u16 index, bool drawIcon, bool selected, bool pressed
         drawMenuIcon(index);
 }
 
+// Draws the description for a given button on the bottom of the screen
 static void drawButtonDescription(u16 index)
 {
     char buf[41];
@@ -342,10 +365,16 @@ static void drawButtonDescription(u16 index)
         case MEB_PLAYER4:
             sprintf(buf,"%s (%s)",description,playerTypeNames[settings.player4]);
             break;
+        case MEB_COLORMODE:
+            if(settings.useOldColors)
+                description = "Use original in-game colors.";
+            memcpy(buf,description,41);
+            break;
         case MEB_MULTICONTROLLER:
             if(settings.isHotSeat)
                 description = "Use one controller. (Hot Seat)";
-            // fall through
+            memcpy(buf,description,41);
+            break;
         default:
             memcpy(buf,description,41);
             break;
@@ -357,7 +386,8 @@ static void drawButtonDescription(u16 index)
     VDP_setTextPalette(PAL0);
 }
 
-static void updateButtonValue(u8 index)
+// Updates the value text of a button with a given index, works only if the button has a value text
+static void updateButtonValue(u16 index)
 {
     MenuButton* curButton = &menuButtons[index];
     char buf[4];
@@ -378,6 +408,7 @@ static void updateButtonValue(u8 index)
     VDP_drawText(buf,xpos,ypos);
 }
 
+// Draws everything in the menu
 static void drawMenu(void)
 {
     VDP_setTileMapEx(BG_B,menuTextImg->img->tilemap,TILE_ATTR_FULL(PAL0,1,0,0,menuTextImg->vPos),7,1,0,0,25,4,CPU);
@@ -387,8 +418,13 @@ static void drawMenu(void)
         updateButtonValue(i);
     }
     drawButtonDescription(selectedButton);
+    VDP_setTextPalette(PAL1);
+    VDP_drawText(versionStr,0,27);
+    VDP_drawText(madebyStr,RIGHTALIGNX(madebyStr,39),27);
+    VDP_setTextPalette(PAL0);
 }
 
+// Sets up button icons, start button description and initalizes button textures
 static void setupButtons(void)
 {
     buttonImg = reserveVImage(&texButton,TRUE);
@@ -417,6 +453,7 @@ static void setupButtons(void)
     menuButtons[MEB_COLORMODE].icon = reserveVImage(&texColorIcon,TRUE);
 }
 
+// Resets button pressed values
 static void resetButtonPress()
 {
     selectedPressed.pressed = FALSE;
@@ -425,6 +462,7 @@ static void resetButtonPress()
     selectedPressed.direction = 0;
 }
 
+// Changes the selected button by moving in a given direction and adjusts the button textures
 static void moveSelection(s16 dx, s16 dy)
 {
     resetButtonPress();
@@ -434,7 +472,7 @@ static void moveSelection(s16 dx, s16 dy)
     s16 y = selectedButton >> 2;
     x = (x + dx) & maxX;
     if(x > 1)
-        y = (y + 2 + dy) % 2;
+        y = (y + 2 + dy) & 1;
     else
         y = (y + 3 + dy) % 3;
     selectedButton = (y << 2) + x;
@@ -442,6 +480,7 @@ static void moveSelection(s16 dx, s16 dy)
     drawButtonDescription(selectedButton);
 }
 
+// Changes player type value and returns the new one, goes backwards if moveBack is TRUE, otherwise forwards
 static u8 changePlayerValue(u8 value, bool moveBack)
 {
     s16 playerCount = (settings.player1 > 0) + (settings.player2 > 0) + (settings.player3 > 0) + (settings.player4 > 0);
@@ -463,6 +502,7 @@ static u8 changePlayerValue(u8 value, bool moveBack)
     return value;
 }
 
+// Perform a button action, done on button press or continuously if the button is held
 static void buttonAction(void)
 {
     if(!selectedPressed.pressed)
@@ -474,8 +514,11 @@ static void buttonAction(void)
     switch(selectedButton)
     {
         case MEB_TUTORIAL:
+            changedState = TRUE;
+            changeState(ST_TUTORIALSTATE);
             break;
         case MEB_START:
+            changedState = TRUE;
             changeState(ST_GAMESTATE);
             break;
         case MEB_GRIDWIDTH:
@@ -505,6 +548,7 @@ static void buttonAction(void)
         case MEB_COLORMODE:
             settings.useOldColors = !settings.useOldColors;
             updateMenuColors(settings.useOldColors);
+            drawButtonDescription(selectedButton);
             break;
         case MEB_PLAYER1:
             settings.player1 = changePlayerValue(settings.player1,(selectedPressed.direction < 0));
@@ -535,23 +579,23 @@ static void buttonAction(void)
     }
 }
 
+// Function used when button is pressed - sets up press data and draws a pressed button image
 static void pressButton(s8 direction)
 {
     selectedPressed.direction = direction;
     selectedPressed.pressed = TRUE;
     selectedPressed.timer = initButtonTimer;
     selectedPressed.continuous = FALSE;
+    drawMenuButton(selectedButton,FALSE,TRUE,TRUE);
     buttonAction();
-    if(selectedButton != MEB_START)
-        drawMenuButton(selectedButton,FALSE,TRUE,TRUE);
 }
 
 void menustate_init(void)
 {
+    changedState = FALSE;
     isInit = TRUE;
     VDP_setTextPriority(1);
     resetButtonPress();
-    selectedButton = 1;
     initMenuAtoms();
     menuTextImg = reserveVImage(&texMenuText,TRUE);
     setupMenuPalette(settings.useOldColors);
@@ -577,6 +621,9 @@ void menustate_update(fix32 dt)
 
 void menustate_joyevent(u16 joy, u16 changed, u16 state)
 {
+    if(changedState)
+        return;
+
     if(joy==JOY_1)
     {
         if(state & changed)

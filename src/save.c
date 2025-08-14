@@ -249,5 +249,9 @@ void loadSRAM(void)
             saveValid = FALSE;
         }
     }
+    else
+    {
+        saveValid = FALSE;
+    }
     SRAM_disable();
 }

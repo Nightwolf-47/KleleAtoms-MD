@@ -3,6 +3,16 @@
 
 static Pool* menuAtomPool;
 
+// Removes the atom sprite
+static void removeMenuAtom(MenuAtom* atom)
+{
+    if(atom->sprite)
+    {
+        SPR_releaseSprite(atom->sprite);
+        atom->sprite = NULL;
+    }
+}
+
 void spawnMenuAtom(void)
 {
     MenuAtom* curAtom = POOL_allocate(menuAtomPool);
@@ -18,19 +28,10 @@ void spawnMenuAtom(void)
     }
 }
 
-void removeMenuAtom(MenuAtom* atom)
-{
-    if(atom->sprite)
-    {
-        SPR_releaseSprite(atom->sprite);
-        atom->sprite = NULL;
-    }
-}
-
 void moveMenuAtoms(void)
 {
     s16 atomsAllocated = POOL_getNumAllocated(menuAtomPool);
-    MenuAtom** atomArray = POOL_getFirst(menuAtomPool);
+    MenuAtom** atomArray = (MenuAtom**)POOL_getFirst(menuAtomPool);
     const fix32 maxx = FIX32(328);
     const fix32 minx = FIX32(-32);
     const fix32 maxy = FIX32(232);
@@ -64,7 +65,7 @@ void cleanupMenuAtoms(void)
     if(menuAtomPool)
     {
         u16 atomsAllocated = POOL_getNumAllocated(menuAtomPool);
-        MenuAtom** atomArray = POOL_getFirst(menuAtomPool);
+        MenuAtom** atomArray = (MenuAtom**)POOL_getFirst(menuAtomPool);
         while(atomsAllocated--)
         {
             MenuAtom* curAtom = *atomArray++;

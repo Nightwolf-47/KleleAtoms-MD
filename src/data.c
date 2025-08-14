@@ -4,6 +4,7 @@
 #include "states/game/gamestate.h"
 #include "states/title/titlestate.h"
 #include "states/menu/menustate.h"
+#include "states/tutorial/tutorialstate.h"
 
 struct KASettings settings;
 
@@ -12,7 +13,7 @@ u8 currentState = ST_GAMESTATE;
 
 bool randomNoPattern = TRUE;
 
-const char* versionStr = "1.2-dev";
+const char* versionStr = "v1.2-dev";
 
 u16 newPalette[64] = {0};
 
@@ -67,6 +68,11 @@ void data_stateInit(void)
     states[ST_MENUSTATE].update = &menustate_update;
     states[ST_MENUSTATE].joyevent = &menustate_joyevent;
     states[ST_MENUSTATE].stop = &menustate_stop;
+
+    states[ST_TUTORIALSTATE].init = &tutorialstate_init;
+    states[ST_TUTORIALSTATE].update = &tutorialstate_update;
+    states[ST_TUTORIALSTATE].joyevent = &tutorialstate_joyevent;
+    states[ST_TUTORIALSTATE].stop = &tutorialstate_stop;
 }
 
 //Returns a pointer to a VidReservedImage struct

@@ -66,8 +66,8 @@ void setupGamePalettes(bool oldColors)
     }
     else
     {
-        newPalette[21] = RGB24_TO_VDPCOLOR(0x0000EE);
-        newPalette[22] = RGB24_TO_VDPCOLOR(0x0000CC);
+        newPalette[21] = RGB24_TO_VDPCOLOR(0x0022EE);
+        newPalette[22] = RGB24_TO_VDPCOLOR(0x0000EE);
     }
     newPalette[29] = RGB24_TO_VDPCOLOR(0xF8FC48);
     newPalette[30] = RGB24_TO_VDPCOLOR(0xF8D820);
