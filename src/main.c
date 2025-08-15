@@ -3,7 +3,7 @@
 
 void joyEventHandler(u16 joy, u16 changed, u16 state)
 {
-    if(states[currentState].joyevent && !PAL_isDoingFade())
+    if(states[currentState].joyevent && !PAL_isDoingFade() && !isChangingState)
         states[currentState].joyevent(joy,changed,state);
 }
 

@@ -23,6 +23,8 @@ int vImageCount = 0;
 
 bool isDemoPlaying = FALSE;
 
+bool isChangingState = FALSE;
+
 void data_init(void)
 {
     settings.gridWidth = 10;
@@ -95,6 +97,7 @@ VidImagePtr reserveVImage(const Image* img, bool preload)
 //Initializes the game with a given state (should be called only once)
 void initState(enum States newState)
 {
+    isChangingState = TRUE;
     if(newState >= STATE_COUNT)
     {
         SYS_die("Invalid game state!",NULL);
@@ -108,10 +111,12 @@ void initState(enum States newState)
     if(states[currentState].init)
         states[currentState].init();
     PAL_fadeIn(0,63,newPalette,15,TRUE);
+    isChangingState = FALSE;
 }
 
 void changeState(enum States newState)
 {
+    isChangingState = TRUE;
     if(newState >= STATE_COUNT)
     {
         SYS_die("Invalid game state!",NULL);
@@ -132,4 +137,5 @@ void changeState(enum States newState)
     if(states[currentState].init)
         states[currentState].init();
     PAL_fadeIn(0,63,newPalette,15,TRUE);
+    isChangingState = FALSE;
 }

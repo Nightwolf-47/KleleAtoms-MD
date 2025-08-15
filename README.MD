@@ -24,9 +24,9 @@ If a player loses all their atoms, they lose. The last standing player wins the 
 - Multiple controllers - When enabled, every non-AI player uses a separate controller.  
 
 ## Credits  
+**[GreffMASTER](https://github.com/GreffMASTER)** - Title screen/First README.MD image, Main Menu text, KleleAtoms MD big text and button background images.  
 **Stephane Dallongeville** - [SGDK](https://github.com/Stephane-D/sgdk), a development kit used to compile this game.  
-**DrPetter** - SFXR, a tool used to make sounds for this game.  
-**[GreffMASTER](https://github.com/GreffMASTER)** - Title screen/First README.MD image, Main Menu text and button background images.  
+**DrPetter** - SFXR, a tool used to make sounds for this game.   
 
 ## SGDK information
 Version 1.2 (and its dev commits) requires SGDK 2.11 to compile the game.  

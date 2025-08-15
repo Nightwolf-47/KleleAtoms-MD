@@ -4,12 +4,14 @@
 #include "../../../res/resources.h"
 #include "menuatoms.h"
 
-#define RIGHTALIGNX(str,x) ((x)+1-strlen(str))
-
 #define MENU_BUTTON_COUNT 10
 
 static const fix32 initButtonTimer = FIX32(-0.15);
 static const fix32 actionButtonTimer = FIX32(0.2);
+
+static fix32 idleTimer;
+
+static const fix32 maxIdleTime = FIX32(5*60); //If idle for that time (5 minutes), return to title screen
 
 const char* madebyStr = "Made by Nightwolf-47";
 
@@ -53,8 +55,6 @@ static VidImagePtr multiIconImg;
 static VidImagePtr noMultiIconImg;
 
 static VidImagePtr menuTextImg;
-
-static bool changedState = FALSE;
 
 static MenuButton menuButtons[MENU_BUTTON_COUNT] = {
     {3,7,FALSE,NULL,"Open the tutorial."},              // Tutorial
@@ -514,11 +514,9 @@ static void buttonAction(void)
     switch(selectedButton)
     {
         case MEB_TUTORIAL:
-            changedState = TRUE;
             changeState(ST_TUTORIALSTATE);
             break;
         case MEB_START:
-            changedState = TRUE;
             changeState(ST_GAMESTATE);
             break;
         case MEB_GRIDWIDTH:
@@ -592,8 +590,8 @@ static void pressButton(s8 direction)
 
 void menustate_init(void)
 {
-    changedState = FALSE;
     isInit = TRUE;
+    idleTimer = 0;
     VDP_setTextPriority(1);
     resetButtonPress();
     initMenuAtoms();
@@ -617,13 +615,17 @@ void menustate_update(fix32 dt)
             buttonAction();
         }
     }
+    
+    if(!selectedPressed.pressed)
+    {
+        idleTimer += dt;
+        if(idleTimer >= maxIdleTime)
+            changeState(ST_TITLESTATE);
+    }
 }
 
 void menustate_joyevent(u16 joy, u16 changed, u16 state)
 {
-    if(changedState)
-        return;
-
     if(joy==JOY_1)
     {
         if(state & changed)
@@ -654,12 +656,13 @@ void menustate_joyevent(u16 joy, u16 changed, u16 state)
                     break;
             }
         }
-        else if(selectedPressed.pressed && selectedButton != MEB_START)
+        else if(selectedPressed.pressed)
         {
             resetButtonPress();
             drawMenuButton(selectedButton,FALSE,TRUE,FALSE);
         }
     }
+    idleTimer = 0;
 }
 
 void menustate_stop(void)

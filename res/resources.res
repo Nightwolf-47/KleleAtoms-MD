@@ -26,6 +26,7 @@ IMAGE texTutorialIcon "graphics/menu/tutorialicon.png" 0
 IMAGE texMenuText "graphics/menu/menutext.png" 0
 
 IMAGE texTutorialBG "graphics/tutorial/tutorialbg.png" 0
+IMAGE texKAMDText "graphics/tutorial/kamdtext.png" 0
 
 SPRITE sprAtom "graphics/game/atom.png" 1 1 NONE
 SPRITE sprSel "graphics/game/selector.png" 4 4 NONE

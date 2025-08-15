@@ -6,6 +6,8 @@
 
 #define GETCENTERX(str) (20-(strlen(str)>>1)) //Get the X position to make string centered
 
+#define RIGHTALIGNX(str,x) ((x)+1-strlen(str))
+
 #define SFX_CLICK 64 //Menu option change and value change sound
 #define SFX_PUT 65 //Atom place sound
 #define SFX_EXPLODE 66 //Atom explosion sound
@@ -73,6 +75,8 @@ extern u16 newPalette[64]; //New palette, has to be set in init() function of a 
 extern struct VidReservedImage vimages[VIMAGE_MAXCOUNT];
 
 extern bool isDemoPlaying;
+
+extern bool isChangingState;
 
 VidImagePtr reserveVImage(const Image* img, bool preload); //returns pointer to VidReservedImage struct
 
