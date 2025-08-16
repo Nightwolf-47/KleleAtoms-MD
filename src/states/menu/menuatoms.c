@@ -8,8 +8,8 @@ typedef struct MenuAtom
     Sprite* sprite;
     fix32 x;
     fix32 y;
-    fix32 velx;
-    fix32 vely;
+    s16 velx;
+    s16 vely;
 } MenuAtom;
 
 static Pool* menuAtomPool;
@@ -49,10 +49,8 @@ void moveMenuAtoms(void)
     while(atomsAllocated--)
     {
         MenuAtom* curAtom = *atomArray++;
-        fix32 curVelX = curAtom->velx;
-        fix32 curVelY = curAtom->vely;
-        curAtom->x += curVelX;
-        curAtom->y += curVelY;
+        curAtom->x += curAtom->velx;
+        curAtom->y += curAtom->vely;
         SPR_setPosition(curAtom->sprite,(s16)F32_toInt(curAtom->x),(s16)F32_toInt(curAtom->y));
         if(curAtom->x > maxx || curAtom->x < minx || curAtom->y > maxy)
         {
