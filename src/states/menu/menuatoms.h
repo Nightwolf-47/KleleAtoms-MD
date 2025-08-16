@@ -2,17 +2,6 @@
 #define MENUATOMS_H_INCLUDED
 #include <genesis.h>
 
-#define MAX_MENUATOMCOUNT 15
-
-typedef struct MenuAtom
-{
-    Sprite* sprite;
-    fix32 x;
-    fix32 y;
-    fix32 velx;
-    fix32 vely;
-} MenuAtom;
-
 // Try spawning an atom on the screen, will fail if there are already 15 atoms present
 void spawnMenuAtom(void);
 

@@ -1,6 +1,17 @@
 #include "menuatoms.h"
 #include "../../../res/resources.h"
 
+#define MAX_MENUATOMCOUNT 15
+
+typedef struct MenuAtom
+{
+    Sprite* sprite;
+    fix32 x;
+    fix32 y;
+    fix32 velx;
+    fix32 vely;
+} MenuAtom;
+
 static Pool* menuAtomPool;
 
 // Removes the atom sprite
