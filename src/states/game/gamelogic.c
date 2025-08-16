@@ -67,6 +67,8 @@ const fix32 baseExplodeTime = FIX32(0.3); //Longest duration of explosion sprite
 
 static struct ExplodingTile explodingTile;
 
+u16 gridYOffsets[7]; //Y index offsets (precalculated multiplications for GXYIndex macro)
+
 void logic_endMessage(const char* msg)
 {
     logicEnd = TRUE;
@@ -397,6 +399,10 @@ const char* logic_getPlayerName(s16 playerNum)
 //Set all gamelogic variables before starting the game
 void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4])
 {
+    for(u16 y=0; y<7; y++)
+    {
+        gridYOffsets[y] = y * gridWidth;
+    }
     u8* pttab = *ppttab;
     grid.height = gridHeight;
     grid.width = gridWidth;
@@ -492,7 +498,7 @@ void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4])
     animTilePos = 0;
     explodingTile.tilePtr = NULL;
     logicEnd = FALSE;
-    for(int i=0; i<16; i++)
+    for(u16 i=0; i<16; i++)
     {
         atomSprites[i] = SPR_addSprite(&sprAtom,0,0,TILE_ATTR(PAL0,0,FALSE,FALSE));
         SPR_setVisibility(atomSprites[i],HIDDEN);
@@ -503,6 +509,10 @@ void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4])
 //Fix grid start position, critical atom table values and player icon colors after loading a saved game
 void logic_fixLoadedData()
 {
+    for(u16 y=0; y<7; y++)
+    {
+        gridYOffsets[y] = y * grid.width;
+    }
     gridStartX = 2+((36-(grid.width*3))>>1);
     gridStartY = 6+((21-(grid.height*3))>>1);
     for(u16 i=0; i<4; i++)
