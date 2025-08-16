@@ -57,7 +57,7 @@ extern s16 curPlayer;
 
 extern int playerTab[4];
 
-extern int playerAtoms[4];
+extern s16 playerAtoms[4];
 
 extern bool playerMoved[4];
 

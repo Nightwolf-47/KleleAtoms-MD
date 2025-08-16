@@ -9,6 +9,13 @@
 
 #define EXPLOSIONINDEX 0xFF
 
+struct ExplodingTile
+{
+    u16 x;
+    u16 y;
+    struct Tile* tilePtr;
+};
+
 struct KAGrid grid; //In-game grid
 
 u8 critGrid[MAXGRIDSIZE]; //Array of critical atom amounts for each tile
@@ -19,7 +26,7 @@ s16 curPlayer; //Current player (0-3)
 
 int playerTab[4]; //Player statuses (PTAB_NO - not playing, PTAB_LOSE - lost, PTAB_PLAY - playing)
 
-int playerAtoms[4]; //Player atom count, updated every frame
+s16 playerAtoms[4]; //Player atom count
 
 bool playerMoved[4];
 
@@ -57,6 +64,8 @@ const char* playerNames[4] = {"Red","Blue","Green","Yellow"};
 bool logicEnd = FALSE; //If TRUE the game will end and it will wait for a button press
 
 const fix32 baseExplodeTime = FIX32(0.3); //Longest duration of explosion sprite being shown after atom explosion
+
+static struct ExplodingTile explodingTile;
 
 void logic_endMessage(const char* msg)
 {
@@ -131,10 +140,13 @@ void setAtoms(u8 x, u8 y, u8 atomCount, s16 player)
 //Add atoms on a tile and change tile player number if (player != NOPLAYER)
 void addAtoms(u8 x, u8 y, u8 atomCount, s16 player)
 {
-    u16 index = GXYIndex(x,y);
-    grid.tiles[index].atomCount += atomCount;
-    grid.tiles[index].playerNum = (player==NOPLAYER) ? grid.tiles[index].playerNum : player;
-    drawTile(x,y,grid.tiles[index].playerNum,grid.tiles[index].atomCount);
+    struct Tile* curTile = &grid.tiles[GXYIndex(x,y)];
+    if(curTile->playerNum != NOPLAYER)
+        playerAtoms[curTile->playerNum] -= curTile->atomCount;
+    curTile->atomCount += atomCount;
+    curTile->playerNum = (player==NOPLAYER) ? curTile->playerNum : player;
+    playerAtoms[curTile->playerNum] += curTile->atomCount;
+    drawTile(x,y,curTile->playerNum,curTile->atomCount);
 }
 
 //Put an atom, return TRUE if the tile becomes or was already critical
@@ -146,6 +158,8 @@ bool putAtom(u8 x, u8 y, s16 newPlayer)
     const u8 midpos = 8; //middle X and Y atom position offset
     const u8 endpos = 14; //biggest X and Y atom position offset
     struct Tile* atomTile = &grid.tiles[GXYIndex(x,y)];
+    if(atomTile->playerNum != NOPLAYER)
+        playerAtoms[atomTile->playerNum] -= atomTile->atomCount;
     if(newPlayer==NOPLAYER)
         atomTile->playerNum = curPlayer;
     else
@@ -160,6 +174,7 @@ bool putAtom(u8 x, u8 y, s16 newPlayer)
     s16 py;
     tileToPixels(x,y,&px,&py); //Get position of the tile in pixels
     atomTile->atomCount++;
+    playerAtoms[atplayer] += atomTile->atomCount;
     if(atomposIndex > 12)
     {
         SYS_die("Too many sprites (more than 16) requested!",NULL);
@@ -294,7 +309,11 @@ void explodeAtoms(u8 x, u8 y, s16 atplayer)
     u16 index = GXYIndex(x,y);
     struct Tile* curTile = &grid.tiles[index];
     curTile->explodeTime = baseExplodeTime/max(min(explosionCount,1000)/10,1);
+    explodingTile.x = x;
+    explodingTile.y = y;
+    explodingTile.tilePtr = curTile;
     u8 extra = (u8)max(curTile->atomCount-critGrid[index],0); //Amount of atoms above critical amount
+    playerAtoms[atplayer] -= curTile->atomCount; //Temporarily remove the atoms from player for easier counting, they will be readded later
     curTile->atomCount = 0;
     curTile->playerNum = NOPLAYER;
     if(y+1<grid.height)
@@ -331,7 +350,6 @@ void explodeAtoms(u8 x, u8 y, s16 atplayer)
 
 void prepareNewAtoms(u8 tx, u8 ty)
 {
-    playerAtoms[curPlayer] = max(playerAtoms[curPlayer],1);
     if(putAtom(tx,ty,curPlayer)) //If tile becomes critical, blow it up and add the position to atomStack
     {
         explodePos.x = tx;
@@ -472,6 +490,7 @@ void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4])
     memset(atompos,0,4*sizeof(struct AtomPosition));
     atomposIndex = 0;
     animTilePos = 0;
+    explodingTile.tilePtr = NULL;
     logicEnd = FALSE;
     for(int i=0; i<16; i++)
     {
@@ -486,26 +505,37 @@ void logic_fixLoadedData()
 {
     gridStartX = 2+((36-(grid.width*3))>>1);
     gridStartY = 6+((21-(grid.height*3))>>1);
-    for(int x=0; x<grid.width; x++)
+    for(u16 i=0; i<4; i++)
     {
-        for(int y=0; y<grid.height; y++)
+        playerAtoms[i] = 0;
+    }
+    for(u16 x=0; x<grid.width; x++)
+    {
+        for(u16 y=0; y<grid.height; y++)
         {
-            critGrid[GXYIndex(x,y)] = 4;
+            u16 index = GXYIndex(x,y);
+            critGrid[index] = 4;
             if(x==0 || x==(grid.width-1))
             {
                 if(y==0 || y==(grid.height-1))
                 {
-                    critGrid[GXYIndex(x,y)] = 2;
+                    critGrid[index] = 2;
                 }
                 else
                 {
-                    critGrid[GXYIndex(x,y)] = 3;
+                    critGrid[index] = 3;
                 }
             }
             else if(y==0 || y==(grid.height-1))
             {
-                critGrid[GXYIndex(x,y)] = 3;
+                critGrid[index] = 3;
             }
+
+            struct Tile* curTile=&grid.tiles[index];
+            if(curTile->atomCount==0)
+                curTile->playerNum = NOPLAYER;
+            else
+                playerAtoms[curTile->playerNum] += curTile->atomCount;
         }
     }
     if(curPlayer == NOPLAYER || playerCount < 2)
@@ -588,6 +618,8 @@ void logic_tick(fix32 dt)
     {
         nextPlayer();
     }
+    if(explodingTile.tilePtr)
+        animPlaying = TRUE;
     if(!animPlaying)
     {
         if(explodePos.willExplode) //Blow up atoms queued for explosion
@@ -637,39 +669,23 @@ void logic_tick(fix32 dt)
             ai_tryMove(dt);
         }
     }
+    if(explodingTile.tilePtr)
+    {
+        if(explodingTile.tilePtr->explodeTime > 0)
+        {
+            explodingTile.tilePtr->explodeTime -= dt;
+            if(explodingTile.tilePtr->explodeTime <= 0) //If a tile stopped exploding, remove the explosion sprite and remove the pointer
+            {
+                explodingTile.tilePtr->explodeTime = -1;
+                drawTile(explodingTile.x,explodingTile.y,explodingTile.tilePtr->playerNum & 3,explodingTile.tilePtr->atomCount);
+                explodingTile.tilePtr = NULL;
+            }
+        }
+    }
 }
 
 void logic_draw(fix32 dt)
 {
-    for(int i=0; i<4; i++)
-    {
-        playerAtoms[i] = 0;
-    }
-    bool isAnyTileExploding = FALSE;
-    for(int x=0; x<grid.width; x++) //Calculate atom count for each player, reset playerNum in tiles without atoms and handle exploding tiles
-    {
-        for(int y=0; y<grid.height; y++)
-        {
-            struct Tile* curTile = &grid.tiles[GXYIndex(x,y)];
-            if(curTile->atomCount==0)
-                curTile->playerNum = NOPLAYER;
-            else
-                playerAtoms[curTile->playerNum] += curTile->atomCount;
-            if(curTile->explodeTime > 0)
-            {
-                curTile->explodeTime -= dt;
-                if(curTile->explodeTime <= 0) //If a tile stopped exploding, remove the explosion sprite
-                {
-                    curTile->explodeTime = -1;
-                    drawTile(x,y,curTile->playerNum & 3,curTile->atomCount);
-                }
-                else //Otherwise prevent all animations from playing until all explosions stop
-                {
-                    isAnyTileExploding = TRUE;
-                }
-            }
-        }
-    }
     if(animPlaying)
     {
         static fix32 leftMoveSpeed = 0;
@@ -691,7 +707,7 @@ void logic_draw(fix32 dt)
                 SPR_setPosition(atomSprites[i],px,py);
             }
         }
-        animPlaying = (stillPlaying || isAnyTileExploding);
+        animPlaying = (stillPlaying || explodingTile.tilePtr);
         if(!animPlaying) //If no atoms are moving and no tiles are exploding anymore
         {
             for(int i=0; i<atomposIndex; i++) //Hide all the sprites for later use
