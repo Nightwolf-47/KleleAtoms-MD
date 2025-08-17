@@ -4,8 +4,6 @@
 #include "../../../res/resources.h"
 #include "menuatoms.h"
 
-#define MENU_BUTTON_COUNT 10
-
 static const fix32 initButtonTimer = FIX32(-0.15);
 static const fix32 actionButtonTimer = FIX32(0.2);
 
@@ -40,7 +38,10 @@ enum MenuButtonNames {
     MEB_PLAYER3,
     MEB_PLAYER4,
     MEB_MULTICONTROLLER,
-    MEB_COLORMODE
+    MEB_COLORMODE,
+    MEB_ABOUT,
+
+    MENU_BUTTON_COUNT
 };
 
 static bool isInit;
@@ -66,7 +67,8 @@ static MenuButton menuButtons[MENU_BUTTON_COUNT] = {
     {27,13,TRUE,NULL,"Player 3 type"},                  // Player 3
     {33,13,TRUE,NULL,"Player 4 type"},                  // Player 4
     {3,19,FALSE,NULL,"Use multiple controllers."},      // Multi-Controller
-    {15,19,FALSE,NULL,"Use default in-game colors."}    // Color mode
+    {15,19,FALSE,NULL,"Use default in-game colors."},    // Color mode
+    {28,19,FALSE,NULL,"Open about menu. (not implemented)"},    // About menu
 };
 
 const char* playerTypeNames[5] = {
@@ -451,6 +453,7 @@ static void setupButtons(void)
     menuButtons[MEB_PLAYER4].icon = playerImage;
     menuButtons[MEB_MULTICONTROLLER].icon = (settings.isHotSeat) ? noMultiIconImg : multiIconImg;
     menuButtons[MEB_COLORMODE].icon = reserveVImage(&texColorIcon,TRUE);
+    menuButtons[MEB_ABOUT].icon = reserveVImage(&texAboutIcon,TRUE);
 }
 
 // Resets button pressed values
@@ -463,18 +466,45 @@ static void resetButtonPress()
 }
 
 // Changes the selected button by moving in a given direction and adjusts the button textures
-static void moveSelection(s16 dx, s16 dy)
+static void moveSelection(bool yAxis, bool leftup)
 {
     resetButtonPress();
     drawMenuButton(selectedButton,FALSE,FALSE,FALSE);
-    u16 maxX = (selectedButton > 8) ? 1 : 3;
     s16 x = selectedButton & 3;
     s16 y = selectedButton >> 2;
-    x = (x + dx) & maxX;
-    if(x > 1)
-        y = (y + 2 + dy) & 1;
-    else
-        y = (y + 3 + dy) % 3;
+    if(yAxis) //Move vertically
+    {
+        if(leftup) //Move up
+        {
+            y--;
+            if(y < 0)
+                y = 2;
+        }
+        else  //Move down
+        {
+            y++;
+            if(y > 2)
+                y = 0;
+        }
+        if(y == 2 && x == 3)
+            x = 2;
+    }
+    else //Move horizontally
+    {
+        u16 maxX = (y == 2) ? 2 : 3;
+        if(leftup) //Move left
+        {
+            x--;
+            if(x < 0)
+                x = maxX;
+        }
+        else  //Move right
+        {
+            x++;
+            if(x > maxX)
+                x = 0;
+        }
+    }
     selectedButton = (y << 2) + x;
     drawMenuButton(selectedButton,FALSE,TRUE,selectedPressed.pressed);
     drawButtonDescription(selectedButton);
@@ -633,16 +663,16 @@ void menustate_joyevent(u16 joy, u16 changed, u16 state)
             switch(changed)
             {
                 case BUTTON_UP:
-                    moveSelection(0,-1);
+                    moveSelection(TRUE,TRUE);
                     break;
                 case BUTTON_DOWN:
-                    moveSelection(0,1);
+                    moveSelection(TRUE,FALSE);
                     break;
                 case BUTTON_LEFT:
-                    moveSelection(-1,0);
+                    moveSelection(FALSE,TRUE);
                     break;
                 case BUTTON_RIGHT:
-                    moveSelection(1,0);
+                    moveSelection(FALSE,FALSE);
                     break;
                 case BUTTON_A:
                 case BUTTON_B:

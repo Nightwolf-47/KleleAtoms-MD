@@ -23,6 +23,7 @@ IMAGE texPlayerIcon "graphics/menu/playericon.png" 0
 IMAGE texStartIcon "graphics/menu/starticon.png" 0
 IMAGE texSaveIcon "graphics/menu/saveicon.png" 0
 IMAGE texTutorialIcon "graphics/menu/tutorialicon.png" 0
+IMAGE texAboutIcon "graphics/menu/abouticon.png" 0
 IMAGE texMenuText "graphics/menu/menutext.png" 0
 
 IMAGE texTutorialBG "graphics/tutorial/tutorialbg.png" 0
