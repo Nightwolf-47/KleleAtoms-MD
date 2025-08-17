@@ -183,7 +183,7 @@ static u16 printMultilineText(const char* text, u16 x, u16 y, u16 verticalSpacin
     return cury;
 }
 
-static void drawTileAnimation()
+static void drawTileAnimation(void)
 {
     if(!animationData.enabled || !animationData.animationsArray)
         return;

@@ -12,6 +12,8 @@
 #define SFX_PUT 65 //Atom place sound
 #define SFX_EXPLODE 66 //Atom explosion sound
 
+#define IS_RELEASE_BUILD FALSE
+
 enum States { //List of game states
     ST_GAMESTATE,
     ST_TITLESTATE,

@@ -119,7 +119,7 @@ void fixSelPos(void)
 }
 
 //Draw the atom image next to the selected option and clear other spots where it can be
-void drawPauseSelPos()
+void drawPauseSelPos(void)
 {
     VDP_clearTileMapRect(BG_B,5,2,1,1);
     VDP_clearTileMapRect(BG_B,23,2,1,1);

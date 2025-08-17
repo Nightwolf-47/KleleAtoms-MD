@@ -507,7 +507,7 @@ void logic_loadAll(u8 gridWidth, u8 gridHeight, u8 (*ppttab)[4])
 }
 
 //Fix grid start position, critical atom table values and player icon colors after loading a saved game
-void logic_fixLoadedData()
+void logic_fixLoadedData(void)
 {
     for(u16 y=0; y<7; y++)
     {

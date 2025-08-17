@@ -457,7 +457,7 @@ static void setupButtons(void)
 }
 
 // Resets button pressed values
-static void resetButtonPress()
+static void resetButtonPress(void)
 {
     selectedPressed.pressed = FALSE;
     selectedPressed.continuous = FALSE;
