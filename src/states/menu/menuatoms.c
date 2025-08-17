@@ -33,7 +33,7 @@ void spawnMenuAtom(void)
         curAtom->x = (random() & 1023) * 320;
         curAtom->y = FIX32(-32);
         curAtom->velx = ((random() & 1023) - 512) * 3;
-        curAtom->vely = ((random() & 511) + 300) * 3;
+        curAtom->vely = ((random() & 511) + 342) * 3;
         curAtom->sprite = SPR_addSpriteSafe(&sprMenuAtom,(s16)F32_toInt(curAtom->x),(s16)F32_toInt(curAtom->y),TILE_ATTR(color,0,0,0));
         SPR_setFrame(curAtom->sprite,random() % 3);
     }

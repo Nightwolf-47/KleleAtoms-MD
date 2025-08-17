@@ -10,4 +10,4 @@ void tutorialstate_joyevent(u16 joy, u16 changed, u16 state);
 
 void tutorialstate_stop(void);
 
-#endif
+#endif //TUTORIALSTATE_H_INCLUDED

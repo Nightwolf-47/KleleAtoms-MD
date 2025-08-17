@@ -5,6 +5,7 @@
 #include "states/title/titlestate.h"
 #include "states/menu/menustate.h"
 #include "states/tutorial/tutorialstate.h"
+#include "states/about/aboutstate.h"
 
 struct KASettings settings;
 
@@ -75,6 +76,11 @@ void data_stateInit(void)
     states[ST_TUTORIALSTATE].update = &tutorialstate_update;
     states[ST_TUTORIALSTATE].joyevent = &tutorialstate_joyevent;
     states[ST_TUTORIALSTATE].stop = &tutorialstate_stop;
+
+    states[ST_ABOUTSTATE].init = &aboutstate_init;
+    states[ST_ABOUTSTATE].update = &aboutstate_update;
+    states[ST_ABOUTSTATE].joyevent = &aboutstate_joyevent;
+    states[ST_ABOUTSTATE].stop = &aboutstate_stop;
 }
 
 //Returns a pointer to a VidReservedImage struct

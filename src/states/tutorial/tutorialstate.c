@@ -159,29 +159,26 @@ static void setupTutorialColors(bool oldColors)
 static u16 printMultilineText(const char* text, u16 x, u16 y, u16 verticalSpacing)
 {
     u16 cury = y;
-    u16 textlen = strlen(text);
-    if(textlen == 0)
-        return cury;
-    char buf[64];
-    u16 beginindex = 0;
-    u16 curindex = 0;
-    
-    while(curindex < textlen)
+    u16 curx = x;
+    u8 palette = VDP_getTextPalette();
+    u8 priority = VDP_getTextPriority();
+    VDPPlane plane = VDP_getTextPlane();
+    s16 baseFontIndex = TILE_FONT_INDEX-32;
+    char c;
+    while(*text)
     {
-        if(text[curindex] == '\n')
+        c = *text;
+        switch(c)
         {
-            u16 linelen = curindex-beginindex;
-            memcpy(buf,&text[beginindex],linelen);
-            buf[linelen] = '\0';
-            VDP_drawText(buf,x,cury);
-            beginindex = curindex + 1;
-            cury += verticalSpacing;
+            case '\n':
+                cury += verticalSpacing;
+                curx = x;
+                break;
+            default:
+                VDP_setTileMapXY(plane,TILE_ATTR_FULL(palette,priority,0,0,baseFontIndex+c),curx++,cury);
+                break;
         }
-        curindex++;
-    }
-    if(curindex-beginindex > 0)
-    {
-        VDP_drawText(&text[beginindex],x,cury);
+        text++;
     }
     return cury;
 }

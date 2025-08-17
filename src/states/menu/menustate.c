@@ -67,8 +67,8 @@ static MenuButton menuButtons[MENU_BUTTON_COUNT] = {
     {27,13,TRUE,NULL,"Player 3 type"},                  // Player 3
     {33,13,TRUE,NULL,"Player 4 type"},                  // Player 4
     {3,19,FALSE,NULL,"Use multiple controllers."},      // Multi-Controller
-    {15,19,FALSE,NULL,"Use default in-game colors."},    // Color mode
-    {28,19,FALSE,NULL,"Open about menu. (not implemented)"},    // About menu
+    {15,19,FALSE,NULL,"Use default in-game colors."},   // Color mode
+    {28,19,FALSE,NULL,"Open the about menu."},          // About menu
 };
 
 const char* playerTypeNames[5] = {
@@ -577,6 +577,9 @@ static void buttonAction(void)
             settings.useOldColors = !settings.useOldColors;
             updateMenuColors(settings.useOldColors);
             drawButtonDescription(selectedButton);
+            break;
+        case MEB_ABOUT:
+            changeState(ST_ABOUTSTATE);
             break;
         case MEB_PLAYER1:
             settings.player1 = changePlayerValue(settings.player1,(selectedPressed.direction < 0));

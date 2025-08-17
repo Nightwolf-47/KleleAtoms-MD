@@ -17,6 +17,7 @@ enum States { //List of game states
     ST_TITLESTATE,
     ST_MENUSTATE,
     ST_TUTORIALSTATE,
+    ST_ABOUTSTATE,
 
     STATE_COUNT //The amount of game states
 };
