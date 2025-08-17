@@ -15,11 +15,11 @@ static void drawAboutMenu(void)
 {
     VDP_setTextPalette(PAL1);
     VDP_drawText("About the game",13,0);
-    VDP_drawText("Press any button to leave",7,27);
+    VDP_drawText("Press any button to leave.",7,27);
     VDP_setTextPalette(PAL0);
     char buf[40];
     sprintf(buf,"KleleAtoms MD %s",versionStr);
-    VDP_drawText(buf,GETCENTERX(buf),4);
+    VDP_drawText(buf,GETCENTERX(buf),2);
     VDP_drawText("MegaDrive port of KleleAtoms made",2,6);
     VDP_drawText("by Nightwolf-47 (Invictissimi).",2,8);
     VDP_drawText("Graphics made by greffmaster:",2,12);

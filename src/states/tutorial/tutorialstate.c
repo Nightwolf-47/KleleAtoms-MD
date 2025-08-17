@@ -239,7 +239,7 @@ static void showPage(void)
             printMultilineText(pageTexts[0],2,8,2);
             break;
         case 1:
-            initTileAnimation(&tileAnimsPage2[0],14,y+6);
+            initTileAnimation(&tileAnimsPage2[0],14,y+8);
             break;
         case 2:
             initTileAnimation(&tileAnimsPage3[0],10,y+2);
