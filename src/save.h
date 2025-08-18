@@ -9,8 +9,6 @@
 
 void saveSettings(void);
 
-void resetSRAM(void);
-
 void loadSRAM(void);
 
 void invalidateSRAM(void);
