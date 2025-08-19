@@ -3,7 +3,7 @@
 Mega Drive port of [KłełeAtoms](https://github.com/Nightwolf-47/KleleAtoms), a game where you have to take atoms from other players by blowing up yours, made in SGDK.  
 
 ![kleleatoms-md3](https://user-images.githubusercontent.com/72660447/185236242-6d2cb012-f4cf-4e31-9306-1399067d41bd.png)
-![kamd-menu](https://user-images.githubusercontent.com/72660447/224516185-9e3cfaa3-c4eb-41b6-ad8a-e13439d8c434.png)  
+<img width="320" height="224" alt="kamd-menu" src="https://github.com/user-attachments/assets/b1df6853-6dea-4862-a19c-62902eb0216d" />  
 ![kamd-game](https://user-images.githubusercontent.com/72660447/224516218-f0ffcb4b-ef9f-4c2c-a1f3-a815d4de1a11.png)
 ![kamd-pause2](https://user-images.githubusercontent.com/72660447/224516223-07529fce-3f36-4ac3-88a9-121a02911cb3.png)  
 
