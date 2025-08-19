@@ -2,383 +2,702 @@
 #include "../../data.h"
 #include "../../save.h"
 #include "../../../res/resources.h"
+#include "menuatoms.h"
 
-bool isAboutPage = FALSE;
+static const fix32 initButtonTimer = FIX32(-0.15);
+static const fix32 actionButtonTimer = FIX32(0.2);
 
-s16 menuSel = 0; //Selected option
+static fix32 idleTimer;
 
-#define RIGHTALIGNX(str,x) ((x)+1-strlen(str))
+static const fix32 maxIdleTime = FIX32(5*60); //If idle for that time (5 minutes), return to title screen
 
-#define OPTIONCOUNT 11
+typedef struct MenuButton {
+    s16 x;
+    s16 y;
+    bool small;
+    VidImagePtr icon;
+    const char* description;
+} MenuButton;
 
-#define OPTVALPOS 36 //Position where option values end (in 8x8 pixel tiles)
+typedef struct ButtonPressed {
+    bool pressed;
+    bool continuous;
+    s8 direction;
+    fix32 timer;
+} ButtonPressed;
 
-const char* menuTitle = "MAIN MENU";
+enum MenuButtonNames {
+    MEB_TUTORIAL = 0,
+    MEB_START,
+    MEB_PLAYER1,
+    MEB_PLAYER2,
+    MEB_GRIDWIDTH,
+    MEB_GRIDHEIGHT,
+    MEB_PLAYER3,
+    MEB_PLAYER4,
+    MEB_MULTICONTROLLER,
+    MEB_COLORMODE,
+    MEB_ABOUT,
 
-Image* menuBackground;
-
-Sprite* menuSelSprites[2]; //Menu selection sprites
-
-fix32 menuBGScroll = 0; //Menu background scroll offset in pixels
-
-enum ActionType {
-    AT_LEFT,
-    AT_RIGHT,
-    AT_PRESS
+    MENU_BUTTON_COUNT
 };
 
-//Menu option names
-const char* optNames[OPTIONCOUNT] = {
-    "Start the game",
-    "Grid width",
-    "Grid height",
-    "Player 1 type",
-    "Player 2 type",
-    "Player 3 type",
-    "Player 4 type",
-    "Player colors",
-    "Multiple controllers",
-    "Reset settings",
-    "About"
+static bool isInit;
+
+static int selectedButton = MEB_START;
+static ButtonPressed selectedPressed;
+
+static VidImagePtr buttonImg;
+static VidImagePtr buttonSmImg;
+
+static VidImagePtr multiIconImg;
+static VidImagePtr noMultiIconImg;
+
+static VidImagePtr menuTextImg;
+
+static MenuButton menuButtons[MENU_BUTTON_COUNT] = {
+    {3,7,FALSE,NULL,"Open the tutorial."},              // Tutorial
+    {15,7,FALSE,NULL,"Start the game."},                // Play/Load
+    {27,7,TRUE,NULL,"Player 1 type"},                   // Player 1
+    {33,7,TRUE,NULL,"Player 2 type"},                   // Player 2
+    {3,13,FALSE,NULL,"Set grid width. (5-12)"},         // Grid Width
+    {15,13,FALSE,NULL,"Set grid height. (4-7)"},        // Grid Height
+    {27,13,TRUE,NULL,"Player 3 type"},                  // Player 3
+    {33,13,TRUE,NULL,"Player 4 type"},                  // Player 4
+    {3,19,FALSE,NULL,"Use multiple controllers."},      // Multi-Controller
+    {15,19,FALSE,NULL,"Use default in-game colors."},   // Color mode
+    {28,19,FALSE,NULL,"Open the about menu."},          // About menu
 };
 
-//Menu option descriptions (printed when selected)
-const char* optDescriptions[OPTIONCOUNT] = {
-    "",
-    "Set the grid width. (5-12)",
-    "Set the grid height. (4-7)",
-    "Types: None, Human, AI1, AI2, AI3.",
-    "Types: None, Human, AI1, AI2, AI3.",
-    "Types: None, Human, AI1, AI2, AI3.",
-    "Types: None, Human, AI1, AI2, AI3.",
-    "Choose in-game player colors.",
-    "Use one controller per player.",
-    "Will reset ALL settings.",
-    "View credits, version info, etc."
-};
-
-const char* ptnames[5] = { //Player type names
-    "None",
+const char* playerTypeNames[5] = {
+    "Nothing",
     "Human",
     "AI 1",
     "AI 2",
     "AI 3"
 };
 
-void setupMenuPalette(bool oldColors)
+//PAL_setColor equivalent that works both during initialization and after it
+static void setPaletteColor(u16 index, u16 value)
 {
+    if(isInit)
+        newPalette[index] = value;
+    else
+        PAL_setColor(index,value);
+}
+
+//PAL_getColor equivalent that works both during initialization and after it
+static u16 getPaletteColor(u16 index)
+{
+    if(isInit)
+        return newPalette[index];
+    else
+        return PAL_getColor(index);
+}
+
+//Resets the player icon palette to show every color (like on AI 3)
+static void resetPlayerPalette(u8 index, u8 palStartIndex)
+{
+    setPaletteColor(palStartIndex,RGB24_TO_VDPCOLOR(0x000000));
+    setPaletteColor(palStartIndex+1,RGB24_TO_VDPCOLOR(0x00EE00));
+    setPaletteColor(palStartIndex+2,RGB24_TO_VDPCOLOR(0xCCCC00));
+    setPaletteColor(palStartIndex+3,RGB24_TO_VDPCOLOR(0xEE0000));
+    setPaletteColor(palStartIndex+4,getPaletteColor(index*16+3));
+}
+
+//Updates the player palette to show the current player type
+static void updatePlayerPalette(u8 index)
+{
+    u8 playerVal;
+    switch(index)
+    {
+        case 0:
+            playerVal = settings.player1;
+            break;
+        case 1:
+            playerVal = settings.player2;
+            break;
+        case 2:
+            playerVal = settings.player3;
+            break;
+        case 3:
+            playerVal = settings.player4;
+            break;
+        default:
+            return;
+    }
+    u8 palStartIndex = index*16+10;
+    resetPlayerPalette(index,palStartIndex);
+    
+    if(playerVal == 0)
+        setPaletteColor(palStartIndex+4,RGB24_TO_VDPCOLOR(0x666666));
+    
+    u16 bgColor = (playerVal < 2) ? getPaletteColor(palStartIndex+4) : RGB24_TO_VDPCOLOR(0x000000);
+
+    if(playerVal < 2)
+    {
+        setPaletteColor(palStartIndex,bgColor);
+        setPaletteColor(palStartIndex+1,bgColor);
+    }
+    if(playerVal < 3)
+        setPaletteColor(palStartIndex+2,bgColor);
+    if(playerVal < 4)
+        setPaletteColor(palStartIndex+3,bgColor);
+}
+
+//Initalizes the menu palette (only use during menu initialization)
+static void setupMenuPalette(bool oldColors)
+{
+    memcpy(newPalette,texButton.palette->data,sizeof(u16)*texButton.palette->length);
+    memcpy(&newPalette[16],texPlayerIcon.palette->data,sizeof(u16)*texPlayerIcon.palette->length);
+    memcpy(&newPalette[32],texPlayerIcon.palette->data,sizeof(u16)*texPlayerIcon.palette->length);
+    memcpy(&newPalette[48],texPlayerIcon.palette->data,sizeof(u16)*texPlayerIcon.palette->length);
     newPalette[0] = RGB24_TO_VDPCOLOR(0x002266);
-    newPalette[2] = RGB24_TO_VDPCOLOR(0xEEEEEE);
+    //PAL0 (Red)
     if(oldColors)
     {
-        newPalette[5] = RGB24_TO_VDPCOLOR(0xF80048);
-        newPalette[6] = RGB24_TO_VDPCOLOR(0xC82448);
+        newPalette[1] = RGB24_TO_VDPCOLOR(0xF80048);
+        newPalette[3] = newPalette[14] = RGB24_TO_VDPCOLOR(0xC82448);
     }
     else
     {
-        newPalette[5] = RGB24_TO_VDPCOLOR(0xEE0000);
-        newPalette[6] = RGB24_TO_VDPCOLOR(0xCC2200);
+        newPalette[1] = RGB24_TO_VDPCOLOR(0xEE0000);
+        newPalette[3] = newPalette[14] = RGB24_TO_VDPCOLOR(0xCC2200);
     }
+    newPalette[2] = RGB24_TO_VDPCOLOR(0xEEEEEE);
+    newPalette[10] = RGB24_TO_VDPCOLOR(0x000000);
+    
+    //PAL1 (Blue)
+    if(oldColors)
+    {
+        newPalette[17] = RGB24_TO_VDPCOLOR(0x00B4F8);
+        newPalette[19] = newPalette[30] = RGB24_TO_VDPCOLOR(0x2090F8);
+    }
+    else
+    {
+        newPalette[17] = RGB24_TO_VDPCOLOR(0x0022EE);
+        newPalette[19] = newPalette[30] = RGB24_TO_VDPCOLOR(0x0000EE);
+    }
+    newPalette[18] = RGB24_TO_VDPCOLOR(0xEEEEEE);
+    newPalette[26] = RGB24_TO_VDPCOLOR(0x000000);
+
+    //PAL2 (Green)
+    if(oldColors)
+    {
+        newPalette[33] = RGB24_TO_VDPCOLOR(0x48FC00);
+        newPalette[35] = newPalette[46] = RGB24_TO_VDPCOLOR(0x66CC22);
+    }
+    else
+    {
+        newPalette[33] = RGB24_TO_VDPCOLOR(0x00EE00);
+        newPalette[35] = newPalette[46] = RGB24_TO_VDPCOLOR(0x00CC00);
+    }
+    newPalette[34] = RGB24_TO_VDPCOLOR(0xEEEEEE);
+    newPalette[42] = RGB24_TO_VDPCOLOR(0x000000);
+
+    //PAL3 (Yellow)
+    if(oldColors)
+    {
+        newPalette[49] = RGB24_TO_VDPCOLOR(0xF8FC48);
+        newPalette[51] = newPalette[62] = RGB24_TO_VDPCOLOR(0xEECC44);
+    }
+    else
+    {
+        newPalette[49] = RGB24_TO_VDPCOLOR(0xEECC00);
+        newPalette[51] = newPalette[62] = RGB24_TO_VDPCOLOR(0xEEAA00);
+    }
+    newPalette[50] = RGB24_TO_VDPCOLOR(0xEEEEEE);
+    newPalette[58] = RGB24_TO_VDPCOLOR(0x000000);
+    newPalette[15] = RGB24_TO_VDPCOLOR(0x000000);
+    newPalette[31] = RGB24_TO_VDPCOLOR(0xFFFFFF);
     newPalette[47] = RGB24_TO_VDPCOLOR(0xFFA500);
-    memcpy(&newPalette[16],menuBackground->palette->data,sizeof(u16)*menuBackground->palette->length);
+
+    for(u16 i=0; i<4; i++)
+    {
+        updatePlayerPalette(i);
+    }
 }
 
-//Draw selected option description
-inline void drawOptDescription()
+//Updates menu colors when the colors option is selected
+static void updateMenuColors(bool oldColors)
 {
-    VDP_clearText(1,26,38);
+    //PAL0 (Red)
+    if(oldColors)
+    {
+        PAL_setColor(1,RGB24_TO_VDPCOLOR(0xF80048));
+        PAL_setColor(3,RGB24_TO_VDPCOLOR(0xC82448));
+        PAL_setColor(14,RGB24_TO_VDPCOLOR(0xC82448));
+    }
+    else
+    {
+        PAL_setColor(1,RGB24_TO_VDPCOLOR(0xEE0000));
+        PAL_setColor(3,RGB24_TO_VDPCOLOR(0xCC2200));
+        PAL_setColor(14,RGB24_TO_VDPCOLOR(0xCC2200));
+    }
+
+    //PAL1 (Blue)
+    if(oldColors)
+    {
+        PAL_setColor(17,RGB24_TO_VDPCOLOR(0x00B4F8));
+        PAL_setColor(19,RGB24_TO_VDPCOLOR(0x2090F8));
+        PAL_setColor(30,RGB24_TO_VDPCOLOR(0x2090F8));
+    }
+    else
+    {
+        PAL_setColor(17,RGB24_TO_VDPCOLOR(0x0022EE));
+        PAL_setColor(19,RGB24_TO_VDPCOLOR(0x0000EE));
+        PAL_setColor(30,RGB24_TO_VDPCOLOR(0x0000EE));
+    }
+
+    //PAL2 (Green)
+    if(oldColors)
+    {
+        PAL_setColor(33,RGB24_TO_VDPCOLOR(0x48FC00));
+        PAL_setColor(35,RGB24_TO_VDPCOLOR(0x66CC22));
+        PAL_setColor(46,RGB24_TO_VDPCOLOR(0x66CC22));
+    }
+    else
+    {
+        PAL_setColor(33,RGB24_TO_VDPCOLOR(0x00EE00));
+        PAL_setColor(35,RGB24_TO_VDPCOLOR(0x00CC00));
+        PAL_setColor(46,RGB24_TO_VDPCOLOR(0x00CC00));
+    }
+
+    //PAL3 (Yellow)
+    if(oldColors)
+    {
+        PAL_setColor(49,RGB24_TO_VDPCOLOR(0xF8FC48));
+        PAL_setColor(51,RGB24_TO_VDPCOLOR(0xEECC44));
+        PAL_setColor(62,RGB24_TO_VDPCOLOR(0xEECC44));
+    }
+    else
+    {
+        PAL_setColor(49,RGB24_TO_VDPCOLOR(0xEECC00));
+        PAL_setColor(51,RGB24_TO_VDPCOLOR(0xEEAA00));
+        PAL_setColor(62,RGB24_TO_VDPCOLOR(0xEEAA00));
+    }
+
+    for(u16 i=0; i<4; i++)
+    {
+        updatePlayerPalette(i);
+    }
+}
+
+//Draws the icon for the specific button
+static void drawMenuIcon(u16 index)
+{
+    MenuButton* curButton = &menuButtons[index]; 
+    u8 palIndex = 1;
+    u8 iconWidth = 9;
+
+    switch(index)
+    {
+        case MEB_PLAYER1:
+            palIndex = 0;
+            iconWidth = 5;
+            break;
+        case MEB_PLAYER2:
+            palIndex = 1;
+            iconWidth = 5;
+            break;
+        case MEB_PLAYER3:
+            palIndex = 2;
+            iconWidth = 5;
+            break;
+        case MEB_PLAYER4:
+            palIndex = 3;
+            iconWidth = 5;
+            break;
+        case MEB_GRIDHEIGHT:
+        case MEB_GRIDWIDTH:
+            iconWidth = 5;
+            break;
+        case MEB_COLORMODE:
+            VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(PAL1,1,0,0,curButton->icon->vPos),curButton->x,curButton->y,0,0,3,5,CPU);
+            VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(PAL0,1,0,0,curButton->icon->vPos),curButton->x+3,curButton->y,3,0,1,5,CPU);
+            VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(PAL2,1,0,0,curButton->icon->vPos),curButton->x+4,curButton->y,4,0,1,5,CPU);
+            VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(PAL3,1,0,0,curButton->icon->vPos),curButton->x+5,curButton->y,5,0,1,5,CPU);
+            VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(PAL1,1,0,0,curButton->icon->vPos),curButton->x+6,curButton->y,6,0,3,5,CPU);
+            return;
+        default:
+            break;
+    }
+    VDP_setTileMapEx(BG_A,curButton->icon->img->tilemap,TILE_ATTR_FULL(palIndex,1,0,0,curButton->icon->vPos),curButton->x,curButton->y,0,0,iconWidth,5,CPU);
+}
+
+// Draws the button with specified parameters and optionally its icon
+static void drawMenuButton(u16 index, bool drawIcon, bool selected, bool pressed)
+{
+    MenuButton* curButton = &menuButtons[index];
+
+    u16 button_ry = 0;
+    if(pressed)
+        button_ry = 10;
+    else if(selected)
+        button_ry = 5;
+    
+    if(curButton->small)
+        VDP_setTileMapEx(BG_B,buttonSmImg->img->tilemap,TILE_ATTR_FULL(PAL0,1,0,0,buttonSmImg->vPos),curButton->x,curButton->y,0,button_ry,5,5,CPU);
+    else
+        VDP_setTileMapEx(BG_B,buttonImg->img->tilemap,TILE_ATTR_FULL(PAL0,1,0,0,buttonImg->vPos),curButton->x,curButton->y,0,button_ry,9,5,CPU);
+    
+    if(drawIcon)
+        drawMenuIcon(index);
+}
+
+// Draws the description for a given button on the bottom of the screen
+static void drawButtonDescription(u16 index)
+{
+    char buf[41];
+    const char* description = menuButtons[index].description;
+
+    switch(index)
+    {
+        case MEB_PLAYER1:
+            sprintf(buf,"%s (%s)",description,playerTypeNames[settings.player1]);
+            break;
+        case MEB_PLAYER2:
+            sprintf(buf,"%s (%s)",description,playerTypeNames[settings.player2]);
+            break;
+        case MEB_PLAYER3:
+            sprintf(buf,"%s (%s)",description,playerTypeNames[settings.player3]);
+            break;
+        case MEB_PLAYER4:
+            sprintf(buf,"%s (%s)",description,playerTypeNames[settings.player4]);
+            break;
+        case MEB_COLORMODE:
+            if(settings.useOldColors)
+                description = "Use original in-game colors.";
+            memcpy(buf,description,41);
+            break;
+        case MEB_MULTICONTROLLER:
+            if(settings.isHotSeat)
+                description = "Use one controller. (Hot Seat)";
+            memcpy(buf,description,41);
+            break;
+        default:
+            memcpy(buf,description,41);
+            break;
+    }
+
+    VDP_clearTextLine(25);
     VDP_setTextPalette(PAL2);
-    VDP_drawText(optDescriptions[menuSel],GETCENTERX(optDescriptions[menuSel]),26);
+    VDP_drawText(buf,GETCENTERX(buf),25);
     VDP_setTextPalette(PAL0);
 }
 
-//Wrap around the menu selection if needed, show a description and play sound
-void fixMenuSelPos(void)
+// Updates the value text of a button with a given index, works only if the button has a value text
+static void updateButtonValue(u16 index)
 {
-    if(menuSel>=OPTIONCOUNT)
-        menuSel=0;
-    else if(menuSel<0)
-        menuSel=OPTIONCOUNT-1;
-    XGM_stopPlayPCM(SOUND_PCM_CH2);
-    XGM_startPlayPCM(SFX_CLICK,0,SOUND_PCM_CH2);
-    drawOptDescription();
-}
-
-//Draw option value in the proper position
-void drawValStr(int index, char* valuestr)
-{
-    VDP_clearText(OPTVALPOS-12,4+(index<<1),15);
-    VDP_drawText(valuestr,RIGHTALIGNX(valuestr,OPTVALPOS),4+(index<<1));
-}
-
-//Update option value with given index
-void updateVal(int index)
-{
-    char tempstr[24];
+    MenuButton* curButton = &menuButtons[index];
+    char buf[4];
     switch(index)
     {
-        case 1:
-            sprintf(tempstr,"%d",settings.gridWidth);
+        case MEB_GRIDWIDTH:
+            sprintf(buf,"%d",settings.gridWidth);
             break;
-        case 2:
-            sprintf(tempstr,"%d",settings.gridHeight);
-            break;
-        case 3:
-            sprintf(tempstr,"%s",ptnames[settings.player1]);
-            break;
-        case 4:
-            sprintf(tempstr,"%s",ptnames[settings.player2]);
-            break;
-        case 5:
-            sprintf(tempstr,"%s",ptnames[settings.player3]);
-            break;
-        case 6:
-            sprintf(tempstr,"%s",ptnames[settings.player4]);
-            break;
-        case 7:
-            sprintf(tempstr,"%s",(settings.useOldColors) ? "Original" : "Default");
-            break;
-        case 8:
-            sprintf(tempstr,"%s",(settings.isHotSeat) ? "No" : "Yes");
+        case MEB_GRIDHEIGHT:
+            sprintf(buf,"%d",settings.gridHeight);
             break;
         default:
             return;
-            break;
     }
-    drawValStr(index,tempstr);
+    s16 xpos = curButton->x+6;
+    s16 ypos = curButton->y+2;
+    VDP_clearText(xpos,ypos,2);
+    VDP_drawText(buf,xpos,ypos);
 }
 
-void drawMenu(void)
+// Draws everything in the menu
+static void drawMenu(void)
 {
-    optNames[0] = (saveValid) ? "Load saved game" : "Start the game";
-    VDP_clearPlane(BG_A,TRUE);
-    SPR_setVisibility(menuSelSprites[0],AUTO_FAST);
-    SPR_setVisibility(menuSelSprites[1],AUTO_FAST);
-    VDP_drawText(menuTitle,GETCENTERX(menuTitle),1);
-    for(int i=0; i<OPTIONCOUNT; i++)
+    VDP_setTileMapEx(BG_B,menuTextImg->img->tilemap,TILE_ATTR_FULL(PAL0,1,0,0,menuTextImg->vPos),7,1,0,0,25,4,CPU);
+    for(u16 i=0; i<MENU_BUTTON_COUNT; i++)
     {
-        VDP_drawText(optNames[i],3,4+(i<<1));
-        updateVal(i);
+        drawMenuButton(i,TRUE,(i == selectedButton),FALSE);
+        updateButtonValue(i);
     }
-    drawOptDescription();
+    drawButtonDescription(selectedButton);
+    VDP_setTextPalette(PAL1);
+    VDP_drawText(versionStr,0,27);
+    VDP_setTextPalette(PAL0);
 }
 
-//Draw About screen
-void drawAbout(void)
+// Sets up button icons, start button description and initalizes button textures
+static void setupButtons(void)
 {
-    const char* strPtr;
-    VDP_clearPlane(BG_A,TRUE);
-    SPR_setVisibility(menuSelSprites[0],HIDDEN);
-    SPR_setVisibility(menuSelSprites[1],HIDDEN);
-    VDP_drawText("ABOUT",GETCENTERX("ABOUT"),1);
-    char tempstr[32];
-    sprintf(tempstr,"KleleAtoms MD %s",versionStr);
-    VDP_drawText(tempstr,GETCENTERX(tempstr),4);
-    strPtr = "MegaDrive/Genesis port of KleleAtoms";
-    VDP_drawText(strPtr,GETCENTERX(strPtr),6);
-    strPtr = "Made by Nightwolf-47";
-    VDP_drawText(strPtr,GETCENTERX(strPtr),8);
-    strPtr = "Title screen image made by GreffMASTER";
-    VDP_drawText(strPtr,GETCENTERX(strPtr),10);
-    VDP_drawText("Software used:",1,14);
-    VDP_drawText("SGDK 1.80 - Compiler/Development",1,16);
-    VDP_drawText("GIMP 2.10 - Graphics",1,18);
-    VDP_drawText("SFXR      - Sounds",1,20);
-    strPtr = "Press any button to go back";
-    VDP_drawText(strPtr,GETCENTERX(strPtr),26);
-}
+    buttonImg = reserveVImage(&texButton,TRUE);
+    buttonSmImg = reserveVImage(&texSmButton,TRUE);
+    multiIconImg = reserveVImage(&texMultiIcon,TRUE);
+    noMultiIconImg = reserveVImage(&texNoMultiIcon,TRUE);
+    VidImagePtr playerImage = reserveVImage(&texPlayerIcon,TRUE);
 
-//Move menu option value with min and max values and return it
-u8 moveOption(u8 orval, s16 valmin, s16 valmax, bool moveback)
-{
-    s16 val=orval;
-    if(moveback)
+    menuButtons[MEB_TUTORIAL].icon = reserveVImage(&texTutorialIcon,TRUE);
+    if(saveValid)
     {
-        val--;
-        if(val<valmin)
-            val=valmax;
-    }   
+        menuButtons[MEB_START].icon = reserveVImage(&texSaveIcon,TRUE);
+        menuButtons[MEB_START].description = "Resume a saved game.";
+    }
     else
     {
-        val++;
-        if(val>valmax)
-            val=valmin;
+        menuButtons[MEB_START].icon = reserveVImage(&texStartIcon,TRUE);
     }
-    return (u8)val;
+    menuButtons[MEB_PLAYER1].icon = playerImage;
+    menuButtons[MEB_PLAYER2].icon = playerImage;
+    menuButtons[MEB_GRIDWIDTH].icon = reserveVImage(&texGridWidthIcon,TRUE);
+    menuButtons[MEB_GRIDHEIGHT].icon = reserveVImage(&texGridHeightIcon,TRUE);
+    menuButtons[MEB_PLAYER3].icon = playerImage;
+    menuButtons[MEB_PLAYER4].icon = playerImage;
+    menuButtons[MEB_MULTICONTROLLER].icon = (settings.isHotSeat) ? noMultiIconImg : multiIconImg;
+    menuButtons[MEB_COLORMODE].icon = reserveVImage(&texColorIcon,TRUE);
+    menuButtons[MEB_ABOUT].icon = reserveVImage(&texAboutIcon,TRUE);
 }
 
-//Move menu option (version made specifically for player type options, with player amount checks)
-u8 moveOptionPlayer(u8 orval, bool moveBack)
+// Resets button pressed values
+static void resetButtonPress(void)
 {
-    u8 newval = moveOption(orval,0,4,moveBack);
-    int pcount = 0;
-    if(settings.player1>0)
-        pcount++;
-    if(settings.player2>0)
-        pcount++;
-    if(settings.player3>0)
-        pcount++;
-    if(settings.player4>0)
-        pcount++;
-
-    if(orval!=0 && pcount<3 && newval==0)
-        return moveOption(orval,1,4,moveBack);
-    
-    return newval;
+    selectedPressed.pressed = FALSE;
+    selectedPressed.continuous = FALSE;
+    selectedPressed.timer = 0;
+    selectedPressed.direction = 0;
 }
 
-//Handles menu actions except moving up and down
-void menuOptionAction(enum ActionType at)
+// Changes the selected button by moving in a given direction and adjusts the button textures
+static void moveSelection(bool yAxis, bool leftup)
 {
-    bool isOptDecreasing = (bool)(at==AT_LEFT);
-    switch(menuSel)
+    resetButtonPress();
+    drawMenuButton(selectedButton,FALSE,FALSE,FALSE);
+    s16 x = selectedButton & 3;
+    s16 y = selectedButton >> 2;
+    if(yAxis) //Move vertically
     {
-        case 0:
-            if(at==AT_PRESS)
-            {
-                changeState(ST_GAMESTATE);
-            }
-            return;
+        if(leftup) //Move up
+        {
+            y--;
+            if(y < 0)
+                y = 2;
+        }
+        else  //Move down
+        {
+            y++;
+            if(y > 2)
+                y = 0;
+        }
+        if(y == 2 && x == 3)
+            x = 2;
+    }
+    else //Move horizontally
+    {
+        u16 maxX = (y == 2) ? 2 : 3;
+        if(leftup) //Move left
+        {
+            x--;
+            if(x < 0)
+                x = maxX;
+        }
+        else  //Move right
+        {
+            x++;
+            if(x > maxX)
+                x = 0;
+        }
+    }
+    selectedButton = (y << 2) + x;
+    drawMenuButton(selectedButton,FALSE,TRUE,selectedPressed.pressed);
+    drawButtonDescription(selectedButton);
+}
+
+// Changes player type value and returns the new one, goes backwards if moveBack is TRUE, otherwise forwards
+static u8 changePlayerValue(u8 value, bool moveBack)
+{
+    s16 playerCount = (settings.player1 > 0) + (settings.player2 > 0) + (settings.player3 > 0) + (settings.player4 > 0);
+    u8 minVal = (playerCount > 2) ? 0 : 1;
+    if(moveBack)
+    {
+        if(value <= minVal)
+            value = 4;
+        else
+            value--;
+    }
+    else
+    {
+        if(value >= 4)
+            value = minVal;
+        else
+            value++;
+    }
+    return value;
+}
+
+// Perform a button action, done on button press or continuously if the button is held
+static void buttonAction(void)
+{
+    if(!selectedPressed.pressed)
+        return;
+
+    XGM_stopPlayPCM(SOUND_PCM_CH2);
+    XGM_startPlayPCM(SFX_CLICK,0,SOUND_PCM_CH2);
+
+    switch(selectedButton)
+    {
+        case MEB_TUTORIAL:
+            changeState(ST_TUTORIALSTATE);
             break;
-        case 1:
-            settings.gridWidth = moveOption(settings.gridWidth,5,12,isOptDecreasing);
+        case MEB_START:
+            changeState(ST_GAMESTATE);
             break;
-        case 2:
-            settings.gridHeight = moveOption(settings.gridHeight,4,7,isOptDecreasing);
+        case MEB_GRIDWIDTH:
+            settings.gridWidth += selectedPressed.direction;
+            if(settings.gridWidth < 5)
+                settings.gridWidth = 12;
+            else if(settings.gridWidth > 12)
+                settings.gridWidth = 5;
+            updateButtonValue(MEB_GRIDWIDTH);
+            selectedPressed.continuous = TRUE;
             break;
-        case 3:
-            settings.player1 = moveOptionPlayer(settings.player1,isOptDecreasing);
+        case MEB_GRIDHEIGHT:
+            settings.gridHeight += selectedPressed.direction;
+            if(settings.gridHeight < 4)
+                settings.gridHeight = 7;
+            else if(settings.gridHeight > 7)
+                settings.gridHeight = 4;
+            updateButtonValue(MEB_GRIDHEIGHT);
+            selectedPressed.continuous = TRUE;
             break;
-        case 4:
-            settings.player2 = moveOptionPlayer(settings.player2,isOptDecreasing);
-            break;
-        case 5:
-            settings.player3 = moveOptionPlayer(settings.player3,isOptDecreasing);
-            break;
-        case 6:
-            settings.player4 = moveOptionPlayer(settings.player4,isOptDecreasing);
-            break;
-        case 7:
-            settings.useOldColors = !settings.useOldColors;
-            setupMenuPalette(settings.useOldColors);
-            PAL_setColors(0,newPalette,64,CPU);
-            break;
-        case 8:
+        case MEB_MULTICONTROLLER:
             settings.isHotSeat = !settings.isHotSeat;
+            menuButtons[MEB_MULTICONTROLLER].icon = (settings.isHotSeat) ? noMultiIconImg : multiIconImg;
+            drawMenuIcon(selectedButton);
+            drawButtonDescription(selectedButton);
+            return;
+        case MEB_COLORMODE:
+            settings.useOldColors = !settings.useOldColors;
+            updateMenuColors(settings.useOldColors);
+            drawButtonDescription(selectedButton);
             break;
-        case 9:
-            if(at==AT_PRESS)
-            {
-                data_reset();
-                setupMenuPalette(settings.useOldColors);
-                PAL_setColors(0,newPalette,64,CPU);
-                drawMenu();
-            }
-            else
-            {
-                return;
-            }
+        case MEB_ABOUT:
+            changeState(ST_ABOUTSTATE);
             break;
-        case 10:
-            if(at==AT_PRESS)
-            {
-                isAboutPage = TRUE;
-                drawAbout();
-            }
-            else
-            {
-                return;
-            }
+        case MEB_PLAYER1:
+            settings.player1 = changePlayerValue(settings.player1,(selectedPressed.direction < 0));
+            selectedPressed.continuous = TRUE;
+            updatePlayerPalette(0);
+            drawButtonDescription(selectedButton);
+            break;
+        case MEB_PLAYER2:
+            settings.player2 = changePlayerValue(settings.player2,(selectedPressed.direction < 0));
+            selectedPressed.continuous = TRUE;
+            updatePlayerPalette(1);
+            drawButtonDescription(selectedButton);
+            break;
+        case MEB_PLAYER3:
+            settings.player3 = changePlayerValue(settings.player3,(selectedPressed.direction < 0));
+            selectedPressed.continuous = TRUE;
+            updatePlayerPalette(2);
+            drawButtonDescription(selectedButton);
+            break;
+        case MEB_PLAYER4:
+            settings.player4 = changePlayerValue(settings.player4,(selectedPressed.direction < 0));
+            selectedPressed.continuous = TRUE;
+            updatePlayerPalette(3);
+            drawButtonDescription(selectedButton);
             break;
         default:
             break;
     }
-    XGM_stopPlayPCM(SOUND_PCM_CH2);
-    XGM_startPlayPCM(SFX_CLICK,0,SOUND_PCM_CH2);
-    updateVal(menuSel);
+}
+
+// Function used when button is pressed - sets up press data and draws a pressed button image
+static void pressButton(s8 direction)
+{
+    selectedPressed.direction = direction;
+    selectedPressed.pressed = TRUE;
+    selectedPressed.timer = initButtonTimer;
+    selectedPressed.continuous = FALSE;
+    drawMenuButton(selectedButton,FALSE,TRUE,TRUE);
+    buttonAction();
 }
 
 void menustate_init(void)
 {
-    menuSelSprites[0] = SPR_addSpriteSafe(&sprAtom,6,24,TILE_ATTR(PAL0,0,FALSE,FALSE));
-    menuSelSprites[1] = SPR_addSpriteSafe(&sprAtom,304,24,TILE_ATTR(PAL0,0,FALSE,FALSE));
-    if(!menuSelSprites[0] || !menuSelSprites[1])
-    {
-        SYS_die("Couldn't load selector sprites");
-    }
-    menuBackground = unpackImage(&texMenuBG,NULL);
+    isInit = TRUE;
+    idleTimer = 0;
+    VDP_setTextPriority(1);
+    resetButtonPress();
+    initMenuAtoms();
+    menuTextImg = reserveVImage(&texMenuText,TRUE);
     setupMenuPalette(settings.useOldColors);
-    VDP_drawImageEx(BG_B,menuBackground,TILE_ATTR_FULL(PAL1,FALSE,FALSE,FALSE,TILE_USER_INDEX),0,0,FALSE,TRUE);
-    isAboutPage = FALSE;
+    setupButtons();
     drawMenu();
+    isInit = FALSE;
 }
 
 void menustate_update(fix32 dt)
 {
-    menuBGScroll += dt*20; //Move background 20 pixels per second
-    menuBGScroll &= 0x7FFFF; //Limit background scroll offset to 511 pixels
-    VDP_setHorizontalScroll(BG_B,-fix32ToInt(menuBGScroll));
-    if(!isAboutPage) //Update selection sprite positions
+    spawnMenuAtom();
+    moveMenuAtoms();
+    if(selectedPressed.pressed && selectedPressed.continuous)
     {
-        SPR_setPosition(menuSelSprites[0],6,32+(menuSel<<4));
-        SPR_setPosition(menuSelSprites[1],304,32+(menuSel<<4));
+        selectedPressed.timer += dt;
+        if(selectedPressed.timer >= actionButtonTimer)
+        {
+            selectedPressed.timer = 0;
+            buttonAction();
+        }
+    }
+    
+    if(!selectedPressed.pressed)
+    {
+        idleTimer += dt;
+        if(idleTimer >= maxIdleTime)
+            changeState(ST_TITLESTATE);
     }
 }
 
 void menustate_joyevent(u16 joy, u16 changed, u16 state)
 {
-    if(joy==JOY_1 && (state & changed))
+    if(joy==JOY_1)
     {
-        if(!isAboutPage)
+        if(state & changed)
         {
             switch(changed)
             {
                 case BUTTON_UP:
-                    menuSel--;
-                    fixMenuSelPos();
+                    moveSelection(TRUE,TRUE);
                     break;
                 case BUTTON_DOWN:
-                    menuSel++;
-                    fixMenuSelPos();
+                    moveSelection(TRUE,FALSE);
                     break;
                 case BUTTON_LEFT:
-                    menuOptionAction(AT_LEFT);
+                    moveSelection(FALSE,TRUE);
                     break;
                 case BUTTON_RIGHT:
-                    menuOptionAction(AT_RIGHT);
+                    moveSelection(FALSE,FALSE);
                     break;
                 case BUTTON_A:
                 case BUTTON_B:
-                case BUTTON_C:
                 case BUTTON_START:
-                    menuOptionAction(AT_PRESS);
+                    pressButton(1);
+                    break;
+                case BUTTON_C:
+                    pressButton(-1);
                     break;
                 default:
                     break;
             }
         }
-        else
+        else if(selectedPressed.pressed)
         {
-            isAboutPage = FALSE;
-            drawMenu();
-            XGM_stopPlayPCM(SOUND_PCM_CH2);
-            XGM_startPlayPCM(SFX_CLICK,0,SOUND_PCM_CH2);
+            resetButtonPress();
+            drawMenuButton(selectedButton,FALSE,TRUE,FALSE);
         }
     }
+    idleTimer = 0;
 }
 
 void menustate_stop(void)
 {
-    VDP_setHorizontalScroll(BG_B,0);
-    if(menuSelSprites[0])
-    {
-        SPR_releaseSprite(menuSelSprites[0]);
-        SPR_releaseSprite(menuSelSprites[1]);
-    }
-    if(menuBackground)
-    {
-        MEM_free(menuBackground);
-        menuBackground = NULL;
-    }
+    cleanupMenuAtoms();
+    VDP_setTextPriority(0);
     saveSettings();
 }

@@ -2,11 +2,11 @@
 #define DATA_H_INCLUDED
 #include <genesis.h>
 
-#define STATE_COUNT 3 //Amount of game states
-
 #define VIMAGE_MAXCOUNT 16 //Max amount of VidImages
 
 #define GETCENTERX(str) (20-(strlen(str)>>1)) //Get the X position to make string centered
+
+#define RIGHTALIGNX(str,x) ((x)+1-strlen(str))
 
 #define SFX_CLICK 64 //Menu option change and value change sound
 #define SFX_PUT 65 //Atom place sound
@@ -15,7 +15,11 @@
 enum States { //List of game states
     ST_GAMESTATE,
     ST_TITLESTATE,
-    ST_MENUSTATE
+    ST_MENUSTATE,
+    ST_TUTORIALSTATE,
+    ST_ABOUTSTATE,
+
+    STATE_COUNT //The amount of game states
 };
 
 struct KASettings {
@@ -42,8 +46,8 @@ typedef struct VidReservedImage* VidImagePtr; //Shorter type for pointer to VidR
 struct GameState { //Game state structure (not to be confused with ST_GAMESTATE)
     void (*init)(void);
     void (*stop)(void);
-    void (*update)(fix32); //argument - fix32 dt
-    void (*joyevent)(u16,u16,u16); //arguments - u16 joy, u16 changed, u16 state
+    void (*update)(fix32 dt);
+    void (*joyevent)(u16 joy, u16 changed, u16 state);
 };
 
 void data_init(void);
@@ -73,6 +77,8 @@ extern struct VidReservedImage vimages[VIMAGE_MAXCOUNT];
 
 extern bool isDemoPlaying;
 
-VidImagePtr reserveVImage(const Image* img); //returns pointer to VidReservedImage struct
+extern bool isChangingState;
+
+VidImagePtr reserveVImage(const Image* img, bool preload); //returns pointer to VidReservedImage struct
 
 #endif //DATA_H_INCLUDED

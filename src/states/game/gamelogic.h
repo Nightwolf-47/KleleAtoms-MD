@@ -12,7 +12,7 @@
 
 #define NOPLAYER -1
 
-#define GXYIndex(x,y) ((x)+grid.width*(y))
+#define GXYIndex(x,y) ((x)+gridYOffsets[y])
 
 #define PACKCoords(x,y) (((u16)((u8)(x))<<8) | (u8)(y))
 
@@ -42,8 +42,8 @@ struct KAExplodePos
 
 struct KAGrid
 {
-    int width;
-    int height;
+    s16 width;
+    s16 height;
     struct Tile tiles[MAXGRIDSIZE];
 };
 
@@ -57,7 +57,7 @@ extern s16 curPlayer;
 
 extern int playerTab[4];
 
-extern int playerAtoms[4];
+extern s16 playerAtoms[4];
 
 extern bool playerMoved[4];
 
@@ -74,6 +74,8 @@ extern bool logicEnd;
 extern s16 gridStartX;
 
 extern s16 gridStartY;
+
+extern u16 gridYOffsets[7];
 
 //End the current game with a message
 void logic_endMessage(const char* msg);

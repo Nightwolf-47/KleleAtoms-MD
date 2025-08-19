@@ -66,8 +66,8 @@ void setupGamePalettes(bool oldColors)
     }
     else
     {
-        newPalette[21] = RGB24_TO_VDPCOLOR(0x0000EE);
-        newPalette[22] = RGB24_TO_VDPCOLOR(0x0000CC);
+        newPalette[21] = RGB24_TO_VDPCOLOR(0x0022EE);
+        newPalette[22] = RGB24_TO_VDPCOLOR(0x0000EE);
     }
     newPalette[29] = RGB24_TO_VDPCOLOR(0xF8FC48);
     newPalette[30] = RGB24_TO_VDPCOLOR(0xF8D820);
@@ -119,7 +119,7 @@ void fixSelPos(void)
 }
 
 //Draw the atom image next to the selected option and clear other spots where it can be
-void drawPauseSelPos()
+void drawPauseSelPos(void)
 {
     VDP_clearTileMapRect(BG_B,5,2,1,1);
     VDP_clearTileMapRect(BG_B,23,2,1,1);
@@ -194,11 +194,11 @@ void gamePreDraw(bool drawgrid)
 void gamestate_init(void)
 {
     memset(gamePlayerJoys,0,sizeof(gamePlayerJoys));
-    vidImgPauseAtom = reserveVImage(&texSelAtom);
-    vidImgPlayer = reserveVImage(&texPlayer);
-    vidImgPlayerAI = reserveVImage(&texPlayerAI);
-    vidImgBorderH = reserveVImage(&texBorderH);
-    vidImgBorderV = reserveVImage(&texBorderV);
+    vidImgPauseAtom = reserveVImage(&texSelAtom,FALSE);
+    vidImgPlayer = reserveVImage(&texPlayer,FALSE);
+    vidImgPlayerAI = reserveVImage(&texPlayerAI,FALSE);
+    vidImgBorderH = reserveVImage(&texBorderH,FALSE);
+    vidImgBorderV = reserveVImage(&texBorderV,FALSE);
     setupGamePalettes(settings.useOldColors);
     selectx = 0;
     selecty = 0;
@@ -285,7 +285,7 @@ void gamestate_update(fix32 dt)
         if(playerWon<0) //No player has won yet, proceed as normal
         {
             startTime += dt;
-            s32 sectime = fix32ToInt(startTime) & 0x1FFFFF;
+            s32 sectime = F32_toInt(startTime) & 0x1FFFFF;
             if(isDemoPlaying)
             {
                 const char* demoStr="DEMO - Press any button";
@@ -317,7 +317,7 @@ void gamestate_update(fix32 dt)
             char wonstr[24];
             sprintf(wonstr,"Player %s won!",logic_getPlayerName(playerWon));
             logic_endMessage(wonstr);
-            s32 secTime = fix32ToInt(startTime) & 0x1FFFFF;
+            s32 secTime = F32_toInt(startTime) & 0x1FFFFF;
             s32 dresult = divmods(secTime,60);
             s16 minutes = dresult & 0xFFFF;
             s16 seconds = dresult >> 16;

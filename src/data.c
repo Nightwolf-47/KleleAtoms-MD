@@ -4,6 +4,8 @@
 #include "states/game/gamestate.h"
 #include "states/title/titlestate.h"
 #include "states/menu/menustate.h"
+#include "states/tutorial/tutorialstate.h"
+#include "states/about/aboutstate.h"
 
 struct KASettings settings;
 
@@ -12,7 +14,7 @@ u8 currentState = ST_GAMESTATE;
 
 bool randomNoPattern = TRUE;
 
-const char* versionStr = "1.1.3";
+const char* versionStr = "v1.2";
 
 u16 newPalette[64] = {0};
 
@@ -21,6 +23,8 @@ struct VidReservedImage vimages[VIMAGE_MAXCOUNT]; //Array of image data with res
 int vImageCount = 0;
 
 bool isDemoPlaying = FALSE;
+
+bool isChangingState = FALSE;
 
 void data_init(void)
 {
@@ -67,16 +71,28 @@ void data_stateInit(void)
     states[ST_MENUSTATE].update = &menustate_update;
     states[ST_MENUSTATE].joyevent = &menustate_joyevent;
     states[ST_MENUSTATE].stop = &menustate_stop;
+
+    states[ST_TUTORIALSTATE].init = &tutorialstate_init;
+    states[ST_TUTORIALSTATE].update = &tutorialstate_update;
+    states[ST_TUTORIALSTATE].joyevent = &tutorialstate_joyevent;
+    states[ST_TUTORIALSTATE].stop = &tutorialstate_stop;
+
+    states[ST_ABOUTSTATE].init = &aboutstate_init;
+    states[ST_ABOUTSTATE].update = &aboutstate_update;
+    states[ST_ABOUTSTATE].joyevent = &aboutstate_joyevent;
+    states[ST_ABOUTSTATE].stop = &aboutstate_stop;
 }
 
 //Returns a pointer to a VidReservedImage struct
-VidImagePtr reserveVImage(const Image* img)
+VidImagePtr reserveVImage(const Image* img, bool preload)
 {
     if(vImageCount>=VIMAGE_MAXCOUNT)
     {
-        SYS_die("Too many images reserved");
+        SYS_die("Too many images reserved",NULL);
     }
     VidImagePtr vidimg = &vimages[vImageCount];
+    if(preload)
+        VDP_loadTileSet(img->tileset,curTileInd,CPU);
     vidimg->img = img;
     vidimg->vPos = curTileInd;
     curTileInd += img->tileset->numTile;
@@ -87,9 +103,10 @@ VidImagePtr reserveVImage(const Image* img)
 //Initializes the game with a given state (should be called only once)
 void initState(enum States newState)
 {
+    isChangingState = TRUE;
     if(newState >= STATE_COUNT)
     {
-        SYS_die("Invalid game state!");
+        SYS_die("Invalid game state!",NULL);
     }
     PAL_setColors(0,palette_black,64,CPU);
     vImageCount = 0;
@@ -100,13 +117,15 @@ void initState(enum States newState)
     if(states[currentState].init)
         states[currentState].init();
     PAL_fadeIn(0,63,newPalette,15,TRUE);
+    isChangingState = FALSE;
 }
 
 void changeState(enum States newState)
 {
+    isChangingState = TRUE;
     if(newState >= STATE_COUNT)
     {
-        SYS_die("Invalid game state!");
+        SYS_die("Invalid game state!",NULL);
     }
     PAL_fadeOut(0,63,10,FALSE);
     if(states[currentState].stop)
@@ -124,4 +143,5 @@ void changeState(enum States newState)
     if(states[currentState].init)
         states[currentState].init();
     PAL_fadeIn(0,63,newPalette,15,TRUE);
+    isChangingState = FALSE;
 }
