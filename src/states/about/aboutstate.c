@@ -26,12 +26,7 @@ static void drawAboutMenu(void)
     VDP_drawText("-Title screen",2,14);
     VDP_drawText("-MAIN MENU & KLELEATOMS MD big texts",2,16);
     VDP_drawText("-Button backgrounds",2,18);
-    #if IS_RELEASE_BUILD
-        VDP_drawText("The game was built with SGDK "str(SGDK_VERSION)".",2,22);
-    #else
-        VDP_drawText("The game was built with SGDK "str(SGDK_VERSION),2,22);
-        VDP_drawText("on "__DATE__" "__TIME__".",2,24);
-    #endif
+    VDP_drawText("The game was built with SGDK "str(SGDK_VERSION)".",2,22);
 }
 
 void aboutstate_init(void)

@@ -11,8 +11,6 @@ static fix32 idleTimer;
 
 static const fix32 maxIdleTime = FIX32(5*60); //If idle for that time (5 minutes), return to title screen
 
-const char* madebyStr = "Made by Nightwolf-47";
-
 typedef struct MenuButton {
     s16 x;
     s16 y;
@@ -422,7 +420,6 @@ static void drawMenu(void)
     drawButtonDescription(selectedButton);
     VDP_setTextPalette(PAL1);
     VDP_drawText(versionStr,0,27);
-    VDP_drawText(madebyStr,RIGHTALIGNX(madebyStr,39),27);
     VDP_setTextPalette(PAL0);
 }
 
