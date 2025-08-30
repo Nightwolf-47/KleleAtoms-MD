@@ -1,8 +1,15 @@
 #include "data.h"
 #include "save.h"
+#include "mouse.h"
 
 void joyEventHandler(u16 joy, u16 changed, u16 state)
 {
+    if(mouse_isEnabled())
+    {
+        state &= ~BUTTON_DIR;
+        changed &= ~BUTTON_DIR;
+    }
+
     if(states[currentState].joyevent && !PAL_isDoingFade() && !isChangingState)
         states[currentState].joyevent(joy,changed,state);
 }
@@ -11,6 +18,10 @@ int main(bool hard)
 {
     JOY_init();
     SPR_init();
+
+    mouse_stop();
+    if(JOY_getPortType(PORT_1) == PORT_TYPE_MOUSE)
+        mouse_init();
 
     data_stateInit(); //Initialize game states
     data_initsfx(); //Initialize sounds
@@ -34,6 +45,8 @@ int main(bool hard)
             random(); //Removes the pattern from actual random() calls
         if(states[currentState].update)
             states[currentState].update(dt);
+        if(mouse_isEnabled())
+            mouse_update();
         SPR_update();
         SYS_doVBlankProcess();
         fix32 newTime = getTimeAsFix32(0);

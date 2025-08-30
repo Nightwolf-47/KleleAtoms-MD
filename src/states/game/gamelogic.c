@@ -1,6 +1,7 @@
 #include "gamelogic.h"
 #include "gameai.h"
 #include "../../data.h"
+#include "../../mouse.h"
 #include "../../../res/resources.h"
 
 #define ATOMSTACKSIZE 4000
@@ -128,6 +129,7 @@ void nextPlayer(void)
     while(playerTab[curPlayer]!=PTAB_PLAY);
     VDP_drawText(">",5+8*curPlayer,3);
     VDP_drawText("<",8+8*curPlayer,3);
+    mouse_setGameCursorColors(curPlayer, PAL2);
 }
 
 //Set atoms and player number on a tile (currently unused)

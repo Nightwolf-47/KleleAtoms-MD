@@ -32,6 +32,8 @@ IMAGE texKAMDText "graphics/tutorial/kamdtext.png" 0
 SPRITE sprAtom "graphics/game/atom.png" 1 1 NONE
 SPRITE sprSel "graphics/game/selector.png" 4 4 NONE
 SPRITE sprMenuAtom "graphics/menu/menuatoms.png" 3 3 NONE
+SPRITE sprCursor "graphics/cursor.png" 2 2 NONE
+
 WAV sfx_click "sfx/click.wav" XGM
 WAV sfx_put "sfx/put.wav" XGM
 WAV sfx_explode "sfx/explode.wav" XGM

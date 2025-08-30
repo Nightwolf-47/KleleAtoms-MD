@@ -26,6 +26,7 @@ void titlestate_init(void)
     memcpy(newPalette,titleScreen[0]->palette->data,sizeof(u16)*titleScreen[0]->palette->length);
     memcpy(&newPalette[16],titleScreen[1]->palette->data,sizeof(u16)*titleScreen[1]->palette->length);
     newPalette[47] = RGB24_TO_VDPCOLOR(0xEEEEEE);
+    memcpy(&newPalette[48],sprCursor.palette->data,sizeof(u16)*sprCursor.palette->length);
     VDP_drawImageEx(BG_B,vidImgTTS[0]->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgTTS[0]->vPos),0,0,FALSE,TRUE);
     VDP_drawImageEx(BG_B,vidImgTTS[1]->img,TILE_ATTR_FULL(PAL1,0,FALSE,FALSE,vidImgTTS[1]->vPos),26,0,FALSE,TRUE);
     VDP_drawText("Press any button to continue",2,5);

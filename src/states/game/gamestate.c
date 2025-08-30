@@ -1,5 +1,6 @@
 #include "gamestate.h"
 #include "../../data.h"
+#include "../../mouse.h"
 #include "../../../res/resources.h"
 #include "gamelogic.h"
 #include "../../save.h"
@@ -30,6 +31,8 @@ VidImagePtr vidImgPauseAtom; //Pause menu selection image
 u16 gamePlayerJoys[4] = {0,0,0,0}; //Controller ID for each player (ID is controller number - 1)
 
 extern bool aiPlayerTab[4];
+
+static SpriteVisibility defaultSelectorVis;
 
 //Set up colors that will be used by the game (except AI icon level colors)
 void setupGamePalettes(bool oldColors)
@@ -191,6 +194,18 @@ void gamePreDraw(bool drawgrid)
     }
 }
 
+static void clickMouseTile(void)
+{
+    static const u16 divide3 = (u16)21846; // 65536 / 3 rounded up, multiplying by it and shifting 16 bits to the right acts as division by 3
+    MousePosition mpos = mouse_getPosition(TRUE);
+    mpos.x -= gridStartX;
+    mpos.y -= gridStartY;
+    u16 tx = mulu(mpos.x, divide3) >> 16;
+    u16 ty = mulu(mpos.y, divide3) >> 16;
+    if(tx < grid.width && ty < grid.height)
+        logic_clickedTile(tx,ty,FALSE);
+}
+
 void gamestate_init(void)
 {
     memset(gamePlayerJoys,0,sizeof(gamePlayerJoys));
@@ -230,8 +245,18 @@ void gamestate_init(void)
         logic_loadAll(rgw,rgh,&pttab);
     }
     gamePreDraw(TRUE);
+    if(mouse_isEnabled())
+    {
+        mouse_setCursorData(FALSE, PAL2);
+        mouse_setGameCursorColors(curPlayer, PAL2);
+        defaultSelectorVis = HIDDEN;
+    }
+    else
+    {
+        defaultSelectorVis = AUTO_FAST;
+    }
     selector = SPR_addSpriteSafe(&sprSel,8,48,TILE_ATTR(curPlayer,TRUE,FALSE,FALSE));
-    if(isDemoPlaying)
+    if(isDemoPlaying || mouse_isEnabled())
         SPR_setVisibility(selector,HIDDEN);
     
     if(!settings.isHotSeat) //Multiple controller mode
@@ -261,8 +286,34 @@ void gamestate_init(void)
 
 void gamestate_update(fix32 dt)
 {
-    if(isPaused) //No code in this function runs when the game is paused
+    if(isPaused) //Only mouse position checking code runs when paused
     {
+        if(mouse_isEnabled())
+        {
+            MousePosition mpos = mouse_getPosition(TRUE);
+            switch(mpos.y)
+            {
+                case 2:
+                    pauseOptDown = FALSE;
+                    pauseOptRight = (mpos.x >= 20);
+                    drawPauseSelPos();
+                    break;
+                case 1:
+                case 3:
+                case 5:
+                case 6:
+                    pauseOptRight = (mpos.x >= 20);
+                    drawPauseSelPos();
+                    break;
+                case 4:
+                    pauseOptDown = TRUE;
+                    pauseOptRight = (mpos.x >= 20);
+                    drawPauseSelPos();
+                    break;
+                default:
+                    break;
+            }
+        }
         return;
     }
     else if(pausing && asPos==0 && !animPlaying && !logicEnd) //Only pause between turns, otherwise wait
@@ -276,7 +327,7 @@ void gamestate_update(fix32 dt)
     if(animPlaying||asPos>0||aiPlayerTab[curPlayer])
         SPR_setVisibility(selector,HIDDEN);
     else
-        SPR_setVisibility(selector,AUTO_FAST);
+        SPR_setVisibility(selector,defaultSelectorVis);
     s16 px,py;
     tileToPixels(selectx,selecty,&px,&py);
     SPR_setPosition(selector,px-5,py-5); //Update selection box position
@@ -422,7 +473,10 @@ void gamestate_joyevent(u16 joy, u16 changed, u16 state)
                 case BUTTON_A:
                 case BUTTON_B:
                 case BUTTON_C:
-                    logic_clickedTile(selectx,selecty,FALSE);
+                    if(mouse_isEnabled())
+                        clickMouseTile();
+                    else
+                        logic_clickedTile(selectx,selecty,FALSE);
                     break;
                 case BUTTON_START:
                     VDP_drawText("Pausing...",1,0);
@@ -453,4 +507,7 @@ void gamestate_stop(void)
     //Reset pause menu shadow
     VDP_setTextPriority(0);
     VDP_setHilightShadow(FALSE);
+
+    if(mouse_isEnabled())
+        mouse_setCursorData(TRUE,PAL3);
 }
