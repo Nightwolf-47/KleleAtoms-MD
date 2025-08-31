@@ -652,6 +652,7 @@ void menustate_init(void)
     setupMenuPalette(settings.useOldColors);
     if(mouse_isEnabled())
         settings.isHotSeat = TRUE;
+    settings.useOldColors &= 1; //Make sure the value of this boolean is either 0 or 1
     setupButtons();
     drawMenu();
     isInit = FALSE;

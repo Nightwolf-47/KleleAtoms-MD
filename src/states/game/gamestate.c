@@ -27,6 +27,7 @@ VidImagePtr vidImgPlayerAI; //AI-Controlled player icons
 VidImagePtr vidImgBorderH; //Horizontal grid border
 VidImagePtr vidImgBorderV; //Vertical grid border
 VidImagePtr vidImgPauseAtom; //Pause menu selection image
+VidImagePtr vidImgPause; //Pause button (only drawn when mouse present)
 
 u16 gamePlayerJoys[4] = {0,0,0,0}; //Controller ID for each player (ID is controller number - 1)
 
@@ -169,8 +170,9 @@ void gamePreDraw(bool drawgrid)
             {
                 VDP_drawImageEx(BG_B,vidImgPlayer->img,TILE_ATTR_FULL(i,0,FALSE,FALSE,vidImgPlayer->vPos),6+8*i,1,FALSE,TRUE);
             }
-            
         }
+        if(mouse_isEnabled())
+            VDP_drawImageEx(BG_B,vidImgPause->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgPause->vPos),1,0,FALSE,TRUE);
     }
     
     if(drawgrid)
@@ -198,6 +200,14 @@ static void clickMouseTile(void)
 {
     static const u16 divide3 = (u16)21846; // 65536 / 3 rounded up, multiplying by it and shifting 16 bits to the right acts as division by 3
     MousePosition mpos = mouse_getPosition(TRUE);
+    if(mpos.x < 4 && mpos.y < 3)
+    {
+        VDP_drawText("Pausing...",4,0);
+        pausing = TRUE;
+        pauseOptDown = FALSE;
+        pauseOptRight = FALSE;
+        return;
+    }
     mpos.x -= gridStartX;
     mpos.y -= gridStartY;
     u16 tx = mulu(mpos.x, divide3) >> 16;
@@ -214,6 +224,7 @@ void gamestate_init(void)
     vidImgPlayerAI = reserveVImage(&texPlayerAI,FALSE);
     vidImgBorderH = reserveVImage(&texBorderH,FALSE);
     vidImgBorderV = reserveVImage(&texBorderV,FALSE);
+    vidImgPause = reserveVImage(&texPause,FALSE);
     setupGamePalettes(settings.useOldColors);
     selectx = 0;
     selecty = 0;
@@ -248,7 +259,7 @@ void gamestate_init(void)
     if(mouse_isEnabled())
     {
         mouse_setCursorData(FALSE, PAL2);
-        mouse_setGameCursorColors(curPlayer, PAL2);
+        mouse_setGameCursorColors(aiPlayerTab[curPlayer] ? 8 : (curPlayer + (settings.useOldColors << 2)), PAL2);
         defaultSelectorVis = HIDDEN;
     }
     else
@@ -294,24 +305,26 @@ void gamestate_update(fix32 dt)
             switch(mpos.y)
             {
                 case 2:
-                    pauseOptDown = FALSE;
-                    pauseOptRight = (mpos.x >= 20);
-                    drawPauseSelPos();
-                    break;
-                case 1:
-                case 3:
-                case 5:
-                case 6:
-                    pauseOptRight = (mpos.x >= 20);
-                    drawPauseSelPos();
+                    if(pauseOptDown)
+                    {
+                        pauseOptDown = FALSE;
+                        drawPauseSelPos();
+                    }
                     break;
                 case 4:
-                    pauseOptDown = TRUE;
-                    pauseOptRight = (mpos.x >= 20);
-                    drawPauseSelPos();
+                    if(!pauseOptDown)
+                    {
+                        pauseOptDown = TRUE;
+                        drawPauseSelPos();
+                    }
                     break;
                 default:
                     break;
+            }
+            if(pauseOptRight != (mpos.x >= 20))
+            {
+                pauseOptRight = !pauseOptRight;
+                drawPauseSelPos();
             }
         }
         return;
@@ -374,7 +387,7 @@ void gamestate_update(fix32 dt)
             s16 seconds = dresult >> 16;
             char timebuf[16];
             sprintf(timebuf,"Time: %02d:%02d",minutes,seconds);
-            VDP_drawText(timebuf,20-(strlen(timebuf)>>1),4);
+            VDP_drawText(timebuf,GETCENTERX(timebuf),4);
         }
     }
     logic_draw(dt);
@@ -479,7 +492,7 @@ void gamestate_joyevent(u16 joy, u16 changed, u16 state)
                         logic_clickedTile(selectx,selecty,FALSE);
                     break;
                 case BUTTON_START:
-                    VDP_drawText("Pausing...",1,0);
+                    VDP_drawText("Pausing...", mouse_isEnabled()?4:1, 0);
                     pausing = TRUE;
                     pauseOptDown = FALSE;
                     pauseOptRight = FALSE;
@@ -490,7 +503,7 @@ void gamestate_joyevent(u16 joy, u16 changed, u16 state)
         }
         else if(changed==BUTTON_START) //Abort pausing
         {
-            VDP_clearText(1,0,10);
+            VDP_clearText(1,0,15);
             pausing = FALSE;
         }
     }

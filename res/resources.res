@@ -9,6 +9,8 @@ IMAGE texPlayerAI "graphics/game/playerai.png" 0
 IMAGE texBorderH "graphics/game/borderh.png" 0
 IMAGE texBorderV "graphics/game/borderv.png" 0
 IMAGE texSelAtom "graphics/game/selatom.png" 0
+IMAGE texPause "graphics/game/pause.png" 0
+
 IMAGE texTitleScr0 "graphics/title/titlescreen0.png" 2
 IMAGE texTitleScr1 "graphics/title/titlescreen1.png" 2
 

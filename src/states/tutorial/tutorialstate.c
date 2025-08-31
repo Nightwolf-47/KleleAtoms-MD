@@ -280,7 +280,7 @@ void tutorialstate_init(void)
     setupTutorial();
     if(mouse_isEnabled())
     {
-        mouse_setGameCursorColors(4,PAL3);
+        mouse_setGameCursorColors(8,PAL3);
         mouse_setCursorData(FALSE,PAL3);
     }
     VDP_drawImageEx(BG_B,tutorialBGImg->img,TILE_ATTR_FULL(PAL0,0,0,0,tutorialBGImg->vPos),0,0,FALSE,FALSE);

@@ -27,7 +27,8 @@ static void drawAboutMenu(void)
     VDP_drawText("-Title screen",2,14);
     VDP_drawText("-MAIN MENU & KLELEATOMS MD big texts",2,16);
     VDP_drawText("-Button backgrounds",2,18);
-    VDP_drawText("The game was built with SGDK "str(SGDK_VERSION)".",2,22);
+    VDP_drawText("-Mouse cursor sprite",2,20);
+    VDP_drawText("The game was built with SGDK "str(SGDK_VERSION)".",2,24);
 }
 
 void aboutstate_init(void)
