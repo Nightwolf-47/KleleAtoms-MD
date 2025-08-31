@@ -442,6 +442,7 @@ static void setupButtons(void)
     else
     {
         menuButtons[MEB_START].icon = reserveVImage(&texStartIcon,TRUE);
+        menuButtons[MEB_START].description = "Start the game.";
     }
     menuButtons[MEB_PLAYER1].icon = playerImage;
     menuButtons[MEB_PLAYER2].icon = playerImage;

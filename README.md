@@ -29,7 +29,7 @@ If a player loses all their atoms, they lose. The last standing player wins the 
 **DrPetter** - SFXR, a tool used to make sounds for this game.   
 
 ## SGDK information
-Version 1.2 (and its dev commits) requires SGDK 2.11 to compile the game.  
+Versions 1.2 and newer require SGDK 2.11 to compile the game.  
 Versions 1.1.2 and 1.1.3 require SGDK 1.80.  
 Older versions require SGDK 1.70.
 
