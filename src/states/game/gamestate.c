@@ -171,7 +171,7 @@ void gamePreDraw(bool drawgrid)
                 VDP_drawImageEx(BG_B,vidImgPlayer->img,TILE_ATTR_FULL(i,0,FALSE,FALSE,vidImgPlayer->vPos),6+8*i,1,FALSE,TRUE);
             }
         }
-        if(mouse_isEnabled())
+        if(mouse_isEnabled() && !isDemoPlaying)
             VDP_drawImageEx(BG_B,vidImgPause->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgPause->vPos),1,0,FALSE,TRUE);
     }
     
