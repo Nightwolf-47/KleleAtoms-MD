@@ -127,7 +127,9 @@ void nextPlayer(void)
     while(playerTab[curPlayer]!=PTAB_PLAY);
     VDP_drawText(">",5+8*curPlayer,3);
     VDP_drawText("<",8+8*curPlayer,3);
-    mouse_setGameCursorColors(aiPlayerTab[curPlayer] ? 8 : (curPlayer + (settings.useOldColors << 2)), PAL2);
+
+    if(mouse_isEnabled())
+        mouse_setGameCursorColors(aiPlayerTab[curPlayer] ? 8 : (curPlayer + (settings.useOldColors << 2)), PAL2);
 }
 
 //Set atoms and player number on a tile (currently unused)
