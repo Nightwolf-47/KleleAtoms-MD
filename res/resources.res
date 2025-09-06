@@ -11,8 +11,7 @@ IMAGE texBorderV "graphics/game/borderv.png" 0
 IMAGE texSelAtom "graphics/game/selatom.png" 0
 IMAGE texPause "graphics/game/pause.png" 0
 
-IMAGE texTitleScr0 "graphics/title/titlescreen0.png" 2
-IMAGE texTitleScr1 "graphics/title/titlescreen1.png" 2
+IMAGE texTitleScr "graphics/title/titlescreen.png" 2
 
 IMAGE texButton "graphics/menu/button.png" 0
 IMAGE texSmButton "graphics/menu/smbutton.png" 0

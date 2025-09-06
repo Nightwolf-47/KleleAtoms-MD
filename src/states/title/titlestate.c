@@ -2,9 +2,9 @@
 #include "../../data.h"
 #include "../../../res/resources.h"
 
-Image* titleScreen[2]; //Uncompressed title screen image part data
+Image* titleScreen; //Uncompressed title screen image data
 
-VidImagePtr vidImgTTS[2]; //Title screen image parts ready for drawing
+VidImagePtr vidImgTTS; //Title screen image ready for drawing
 
 fix32 demoTimer = 0; //If it reaches demoStartTime, a demo plays
 
@@ -14,21 +14,17 @@ void titlestate_init(void)
 {
     demoTimer = 0;
     isDemoPlaying = FALSE;
-    titleScreen[0] = unpackImage(&texTitleScr0,NULL);
-    titleScreen[1] = unpackImage(&texTitleScr1,NULL);
-    if(!titleScreen[0] || !titleScreen[1])
+    titleScreen = unpackImage(&texTitleScr,NULL);
+    if(!titleScreen)
     {
         SYS_die("Could not load title screen!",NULL);
     }
-    vidImgTTS[0] = reserveVImage(titleScreen[0],FALSE);
-    vidImgTTS[1] = reserveVImage(titleScreen[1],FALSE);
+    vidImgTTS = reserveVImage(titleScreen,FALSE);
     VDP_setTextPalette(PAL2);
-    memcpy(newPalette,titleScreen[0]->palette->data,sizeof(u16)*titleScreen[0]->palette->length);
-    memcpy(&newPalette[16],titleScreen[1]->palette->data,sizeof(u16)*titleScreen[1]->palette->length);
+    memcpy(newPalette,titleScreen->palette->data,sizeof(u16)*titleScreen->palette->length);
     newPalette[47] = RGB24_TO_VDPCOLOR(0xEEEEEE);
     memcpy(&newPalette[48],sprCursor.palette->data,sizeof(u16)*sprCursor.palette->length);
-    VDP_drawImageEx(BG_B,vidImgTTS[0]->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgTTS[0]->vPos),0,0,FALSE,TRUE);
-    VDP_drawImageEx(BG_B,vidImgTTS[1]->img,TILE_ATTR_FULL(PAL1,0,FALSE,FALSE,vidImgTTS[1]->vPos),26,0,FALSE,TRUE);
+    VDP_drawImageEx(BG_B,vidImgTTS->img,TILE_ATTR_FULL(PAL0,0,FALSE,FALSE,vidImgTTS->vPos),0,0,FALSE,TRUE);
     VDP_drawText("Press any button to continue",2,5);
 }
 
@@ -52,13 +48,10 @@ void titlestate_joyevent(u16 joy, u16 changed, u16 state)
 
 void titlestate_stop(void)
 {
-    for(int i=0; i<2; i++)
+    if(titleScreen)
     {
-        if(titleScreen[i])
-        {
-            MEM_free(titleScreen[i]);
-            titleScreen[i] = NULL;
-        }
+        MEM_free(titleScreen);
+        titleScreen = NULL;
     }
     //Change text color palette back to PAL0
     VDP_setTextPalette(PAL0);
