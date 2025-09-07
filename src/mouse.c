@@ -55,7 +55,7 @@ void mouse_setGameCursorColors(u16 color, u16 palette)
     if(isChangingState)
         memcpy(&newPalette[trueIndex], &gameCursorPalettes[color << 2], 4*sizeof(u16));
     else
-        PAL_setColors(trueIndex,&gameCursorPalettes[color << 2],4,CPU);
+        PAL_setColors(trueIndex,&gameCursorPalettes[color << 2],4,DMA_QUEUE);
 }
 
 void mouse_setCursorData(bool inMenus, u16 palette)
