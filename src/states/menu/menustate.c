@@ -718,7 +718,7 @@ void menustate_joyevent(u16 joy, u16 changed, u16 state)
                     break;
             }
         }
-        else if(selectedPressed.pressed)
+        else if(selectedPressed.pressed && changed)
         {
             resetButtonPress();
             drawMenuButton(selectedButton,FALSE,TRUE,FALSE);
