@@ -14,7 +14,7 @@ u8 currentState = ST_GAMESTATE;
 
 bool randomNoPattern = TRUE;
 
-const char* versionStr = "v1.2";
+const char* versionStr = "v1.2.1";
 
 u16 newPalette[64] = {0};
 

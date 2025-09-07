@@ -2,6 +2,7 @@
 #include "../../data.h"
 #include "../../save.h"
 #include "../../../res/resources.h"
+#include "../../mouse.h"
 #include "menuatoms.h"
 
 static const fix32 initButtonTimer = FIX32(-0.15);
@@ -151,7 +152,7 @@ static void setupMenuPalette(bool oldColors)
     memcpy(newPalette,texButton.palette->data,sizeof(u16)*texButton.palette->length);
     memcpy(&newPalette[16],texPlayerIcon.palette->data,sizeof(u16)*texPlayerIcon.palette->length);
     memcpy(&newPalette[32],texPlayerIcon.palette->data,sizeof(u16)*texPlayerIcon.palette->length);
-    memcpy(&newPalette[48],texPlayerIcon.palette->data,sizeof(u16)*texPlayerIcon.palette->length);
+    memcpy(&newPalette[48],sprCursor.palette->data,sizeof(u16)*sprCursor.palette->length);
     newPalette[0] = RGB24_TO_VDPCOLOR(0x002266);
     //PAL0 (Red)
     if(oldColors)
@@ -441,6 +442,7 @@ static void setupButtons(void)
     else
     {
         menuButtons[MEB_START].icon = reserveVImage(&texStartIcon,TRUE);
+        menuButtons[MEB_START].description = "Start the game.";
     }
     menuButtons[MEB_PLAYER1].icon = playerImage;
     menuButtons[MEB_PLAYER2].icon = playerImage;
@@ -565,6 +567,8 @@ static void buttonAction(void)
             selectedPressed.continuous = TRUE;
             break;
         case MEB_MULTICONTROLLER:
+            if(mouse_isEnabled())
+                return;
             settings.isHotSeat = !settings.isHotSeat;
             menuButtons[MEB_MULTICONTROLLER].icon = (settings.isHotSeat) ? noMultiIconImg : multiIconImg;
             drawMenuIcon(selectedButton);
@@ -618,6 +622,26 @@ static void pressButton(s8 direction)
     buttonAction();
 }
 
+static void mouseButtonSelect(void)
+{
+    MousePosition mpos = mouse_getPosition(TRUE);
+    for(u16 i=0; i<MENU_BUTTON_COUNT; i++)
+    {
+        if(i == selectedButton)
+            continue;
+        u16 width = (menuButtons[i].small) ? 5 : 9;
+        if(mpos.y >= menuButtons[i].y && mpos.y < menuButtons[i].y+5 && mpos.x >= menuButtons[i].x && mpos.x < menuButtons[i].x+width)
+        {
+            resetButtonPress();
+            drawMenuButton(selectedButton,FALSE,FALSE,FALSE);
+            selectedButton = i;
+            drawMenuButton(selectedButton,FALSE,TRUE,selectedPressed.pressed);
+            drawButtonDescription(selectedButton);
+            return;
+        }
+    }
+}
+
 void menustate_init(void)
 {
     isInit = TRUE;
@@ -627,6 +651,9 @@ void menustate_init(void)
     initMenuAtoms();
     menuTextImg = reserveVImage(&texMenuText,TRUE);
     setupMenuPalette(settings.useOldColors);
+    if(mouse_isEnabled())
+        settings.isHotSeat = TRUE;
+    settings.useOldColors &= 1; //Make sure the value of this boolean is either 0 or 1
     setupButtons();
     drawMenu();
     isInit = FALSE;
@@ -645,12 +672,17 @@ void menustate_update(fix32 dt)
             buttonAction();
         }
     }
-    
+
     if(!selectedPressed.pressed)
     {
         idleTimer += dt;
         if(idleTimer >= maxIdleTime)
             changeState(ST_TITLESTATE);
+    }
+
+    if(mouse_isEnabled())
+    {
+        mouseButtonSelect();
     }
 }
 
@@ -686,7 +718,7 @@ void menustate_joyevent(u16 joy, u16 changed, u16 state)
                     break;
             }
         }
-        else if(selectedPressed.pressed)
+        else if(selectedPressed.pressed && changed)
         {
             resetButtonPress();
             drawMenuButton(selectedButton,FALSE,TRUE,FALSE);

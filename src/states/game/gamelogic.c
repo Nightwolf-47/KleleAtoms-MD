@@ -1,6 +1,7 @@
 #include "gamelogic.h"
 #include "gameai.h"
 #include "../../data.h"
+#include "../../mouse.h"
 #include "../../../res/resources.h"
 
 #define ATOMSTACKSIZE 4000
@@ -75,10 +76,8 @@ void logic_endMessage(const char* msg)
     //Clear everything except the grid itself
     VDP_clearText(5+8*curPlayer,3,1);
     VDP_clearText(8+8*curPlayer,3,1);
-    VDP_clearText(0,5,40);
     VDP_clearTileMapRect(BG_B,1,0,40,5);
-    VDP_clearText(31,0,9);
-    VDP_clearText(1,0,10);
+    VDP_clearTextLine(0);
     //Print the end message on screen
     VDP_drawText(msg,GETCENTERX(msg),0);
     VDP_drawText("Press any button to go to menu",5,2);
@@ -128,6 +127,9 @@ void nextPlayer(void)
     while(playerTab[curPlayer]!=PTAB_PLAY);
     VDP_drawText(">",5+8*curPlayer,3);
     VDP_drawText("<",8+8*curPlayer,3);
+
+    if(mouse_isEnabled())
+        mouse_setGameCursorColors(aiPlayerTab[curPlayer] ? 8 : (curPlayer + (settings.useOldColors << 2)), PAL2);
 }
 
 //Set atoms and player number on a tile (currently unused)

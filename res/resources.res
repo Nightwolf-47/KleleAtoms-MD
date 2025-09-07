@@ -9,8 +9,9 @@ IMAGE texPlayerAI "graphics/game/playerai.png" 0
 IMAGE texBorderH "graphics/game/borderh.png" 0
 IMAGE texBorderV "graphics/game/borderv.png" 0
 IMAGE texSelAtom "graphics/game/selatom.png" 0
-IMAGE texTitleScr0 "graphics/title/titlescreen0.png" 2
-IMAGE texTitleScr1 "graphics/title/titlescreen1.png" 2
+IMAGE texPause "graphics/game/pause.png" 0
+
+IMAGE texTitleScr "graphics/title/titlescreen.png" 2
 
 IMAGE texButton "graphics/menu/button.png" 0
 IMAGE texSmButton "graphics/menu/smbutton.png" 0
@@ -32,6 +33,8 @@ IMAGE texKAMDText "graphics/tutorial/kamdtext.png" 0
 SPRITE sprAtom "graphics/game/atom.png" 1 1 NONE
 SPRITE sprSel "graphics/game/selector.png" 4 4 NONE
 SPRITE sprMenuAtom "graphics/menu/menuatoms.png" 3 3 NONE
+SPRITE sprCursor "graphics/cursor.png" 2 2 NONE
+
 WAV sfx_click "sfx/click.wav" XGM
 WAV sfx_put "sfx/put.wav" XGM
 WAV sfx_explode "sfx/explode.wav" XGM

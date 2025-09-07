@@ -21,15 +21,15 @@ If a player loses all their atoms, they lose. The last standing player wins the 
 - Grid height - Set in-game grid height (4-7)  
 - Player 1-4 type - Set player type (None, Human, AI 1, AI 2, AI 3) - only 2 players can be None at the same time.  
 - Player colors - Choose between default colors and the ones used in early development versions (original).  
-- Multiple controllers - When enabled, every non-AI player uses a separate controller.  
+- Multiple controllers - When enabled, every non-AI player uses a separate controller. This option is always disabled when a Mega Mouse is used.  
 
 ## Credits  
-**[GreffMASTER](https://github.com/GreffMASTER)** - Title screen/First README.MD image, Main Menu text, KleleAtoms MD big text and button background images.  
+**[GreffMASTER](https://github.com/GreffMASTER)** - Title screen/First README.MD image, Main Menu text, KleleAtoms MD big text, mouse cursor and button background images.  
 **Stephane Dallongeville** - [SGDK](https://github.com/Stephane-D/sgdk), a development kit used to compile this game.  
 **DrPetter** - SFXR, a tool used to make sounds for this game.   
 
 ## SGDK information
-Version 1.2 (and its dev commits) requires SGDK 2.11 to compile the game.  
+Versions 1.2 and newer require SGDK 2.11 to compile the game.  
 Versions 1.1.2 and 1.1.3 require SGDK 1.80.  
 Older versions require SGDK 1.70.
 

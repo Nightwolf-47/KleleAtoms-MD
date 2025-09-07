@@ -2,6 +2,7 @@
 #include <genesis.h>
 #include "../../data.h"
 #include "../../../res/resources.h"
+#include "../../mouse.h"
 #include <string.h>
 
 #define TUTORIAL_TILE_COUNT 6
@@ -277,6 +278,11 @@ void tutorialstate_init(void)
 {
     pageNumber = 0;
     setupTutorial();
+    if(mouse_isEnabled())
+    {
+        mouse_setGameCursorColors(8,PAL3);
+        mouse_setCursorData(FALSE,PAL3);
+    }
     VDP_drawImageEx(BG_B,tutorialBGImg->img,TILE_ATTR_FULL(PAL0,0,0,0,tutorialBGImg->vPos),0,0,FALSE,FALSE);
 }
 
@@ -331,4 +337,6 @@ void tutorialstate_joyevent(u16 joy, u16 changed, u16 state)
 void tutorialstate_stop(void)
 {
     animationData.enabled = 0;
+    if(mouse_isEnabled())
+        mouse_setCursorData(TRUE,PAL3);
 }
