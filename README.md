@@ -21,7 +21,7 @@ If a player loses all their atoms, they lose. The last standing player wins the 
 - Grid height - Set in-game grid height (4-7)  
 - Player 1-4 type - Set player type (None, Human, AI 1, AI 2, AI 3) - only 2 players can be None at the same time.  
 - Player colors - Choose between default colors and the ones used in early development versions (original).  
-- Multiple controllers - When enabled, every non-AI player uses a separate controller.  
+- Multiple controllers - When enabled, every non-AI player uses a separate controller. This option is always disabled when a Mega Mouse is used.  
 
 ## Credits  
 **[GreffMASTER](https://github.com/GreffMASTER)** - Title screen/First README.MD image, Main Menu text, KleleAtoms MD big text, mouse cursor and button background images.  
